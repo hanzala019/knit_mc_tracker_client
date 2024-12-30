@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Status Duration Chart</title>
+    <link href="styles/style.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* padding: 1rem; */
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .chart-section {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .chart-header h1 {
+            font-size: 1.25rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .chart-container {
+        padding: 1rem;
+        width: 100%;
+        overflow-x: auto; /* Enable horizontal scrolling */
+        max-height: 100vh;
+        white-space: nowrap; /* Prevent line breaks within the chart content */
+    }
+
+
+        #timeline-chart {
+            min-width: 700px;
+            width: 100%;
+            height: auto;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .bar { 
+            transition: opacity 0.3s; 
+        }
+        
+        .bar:hover { 
+            opacity: 0.8; 
+        }
+        .empty-period {
+            fill: #f0f0f0;
+            opacity: 0.5;
+        }
+                .chart-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 10px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .chart {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .chart svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tooltip {
+            position: absolute;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+            max-width: 100%;
+            padding: 0 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            margin-right: 4px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .chart {
+                min-height: 300px;
+                padding: 10px;
+            }
+
+            .chart svg {
+                height: 300px;
+            }
+
+            .legend-item {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .chart-container {
+                gap: 10px;
+                padding: 5px;
+            }
+
+            .chart {
+                min-height: 250px;
+            }
+
+            .chart svg {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .chart-header h1 {
+                font-size: 1rem;
+            }
+
+            .chart-container {
+                padding: 0.5rem;
+            }
+
+        #timeline-chart {
+                min-width: 400px; /* Adjust for mobile devices */
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">LOGO</div>
+        <div class="nav-links">
+            <a href="./mc_log.html" class="nav-link">Machine Logs</a>
+            <a href="./chart.html" class="nav-link">Machine Chart</a>
+        </div>
+        <div class="user-section">
+            <div class="user-info">
+                <div class="avatar" id="avatar">A</div>
+            </div>
+            <div class="logout-section">
+                <button class="logout-button">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <section class="chart-section">
+            <div class="chart-header">
+                <h1>Knitting Machine NPT Tracker</h1>
+            </div>
+            <div class="chart-container">
+                <div id="timeline-chart"></div>
+            </div>     
+        </section>
+        <section class="chart-section">
+            <div class="chart-header">
+                <h1>Machine Status Duration Analysis</h1>
+            </div>
+            <div class="chart-container">
+                <div class="chart" id="reason-pie"></div>
+                <div class="chart" id="machine-pie"></div>
+                <div class="chart" id="reason-bar"></div>
+                <div class="chart" id="machine-bar"></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+           // changing the color of the links based on the what page it is
+        document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav-link");
+            const currentPage = window.location.pathname.split("/").pop(); // Get current page filename
+            // console.log(currentPage)
+            links.forEach(link => {
+                
+                if (link.getAttribute("href").split("/").pop() === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        });
+        
+         function findStopReason(events, stopTime) {
+            // console.log(events)
+            // reason
+            const nextButton = events.find(event => 
+                event.status === "Button Pressed" && 
+                new Date(event.timestamp.replace('GMT', '').trim()) > new Date(stopTime)
+            );
+            
+            return nextButton?.reason || "N/A";
+        }
+        
+        function processFetchedData(data) {
+        const processedData = [];
+        const currentTime = new Date(); // Get current time for comparing
+    
+    data.machines.forEach(machineName => {
+        const machineData = {
+            machine: machineName,
+            periods: []
+        };
+        
+        // Create timeline starting at 8am today
+        const today = new Date();
+        today.setHours(8, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(8, 0, 0, 0);
+        
+        const events = data.result[machineName] || [];
+        
+        if (events.length > 0) {
+            const statusEvents = events
+                .filter(event => event.status === "Machine On" || event.status === "Machine Off")
+                .sort((a, b) => new Date(a.timestamp.replace('GMT', '').trim()) - 
+                              new Date(b.timestamp.replace('GMT', '').trim()));
+
+            // Process events up to current time
+            if (statusEvents.length > 0) {
+                const firstEvent = new Date(statusEvents[0].timestamp.replace('GMT', '').trim());
+                let lastEvent = new Date(statusEvents[statusEvents.length - 1].timestamp.replace('GMT', '').trim());
+
+                // Initial period
+                if (firstEvent >= today && firstEvent <= currentTime) {
+                    machineData.periods.push({
+                        status: "Machine Off",
+                        start: today,
+                        end: firstEvent,
+                        duration: (firstEvent - today) / 1000,
+                        reason: "Pre-operation period"
+                    });
+                }
+
+                // Process actual events
+                let startTime = null;
+                let currentStatus = null;
+
+                statusEvents.forEach((event, index) => {
+                    const eventTime = new Date(event.timestamp.replace('GMT', '').trim());
+                    
+                    if (eventTime >= today && eventTime <= tomorrow) {
+                        if (startTime === null) {
+                            startTime = eventTime;
+                            currentStatus = event.status;
+                            return;
+                        }
+
+                        const duration = (eventTime - startTime) / 1000;
+                        const period = {
+                            status: currentStatus,
+                            start: startTime,
+                            end: eventTime,
+                            duration: duration
+                        };
+                        
+                        if (currentStatus === "Machine Off") {
+                            const i = events.findIndex(item => item.id === event.id);
+                            period.reason = findStopReason(events.slice(i, i + 3), startTime);
+                        }
+                        
+                        machineData.periods.push(period);
+                        
+                        startTime = eventTime;
+                        currentStatus = event.status;
+                    }
+                });
+
+                // Add period from last event to current time
+                if (lastEvent < currentTime) {
+                    machineData.periods.push({
+                        status: currentStatus,
+                        start: lastEvent,
+                        end: currentTime,
+                        duration: (currentTime - lastEvent) / 1000,
+                        reason: currentStatus === "Machine Off" ? "Current status" : undefined
+                    });
+                }
+
+                // Add future period (grey)
+                if (currentTime < tomorrow) {
+                    machineData.periods.push({
+                        status: "Future",
+                        start: currentTime,
+                        end: tomorrow,
+                        duration: (tomorrow - currentTime) / 1000,
+                        reason: "Future time period"
+                    });
+                }
+            }
+        } else {
+            // Split into past and future periods
+            if (currentTime > today) {
+                // Past period (red)
+                machineData.periods.push({
+                    status: "Machine Off",
+                    start: today,
+                    end: currentTime,
+                    duration: (currentTime - today) / 1000,
+                    reason: "No operation data"
+                });
+            }
+            
+            // Future period (grey)
+            if (currentTime < tomorrow) {
+                machineData.periods.push({
+                    status: "Future",
+                    start: currentTime,
+                    end: tomorrow,
+                    duration: (tomorrow - currentTime) / 1000,
+                    reason: "Future time period"
+                });
+            }
+        }
+
+        processedData.push(machineData);
+    });
+
+    return processedData;
+}
+
+
+        function getContainerSize(containerId) {
+            const container = document.getElementById(containerId);
+            const rect = container.getBoundingClientRect();
+            return {
+                width: rect.width - 30,
+                height: Math.min(rect.width - 30, 300)
+            };
+        }
+
+        function createPieChart(data, containerId, title, colorScale) {
+            const container = document.getElementById(containerId);
+            const size = getContainerSize(containerId);
+            const radius = Math.min(size.width, size.height) / 2.5;
+
+            const svg = d3.select(`#${containerId}`)
+                .append('svg')
+                .attr('viewBox', `0 0 ${size.width} ${size.height + 30}`)
+                .append('g')
+                .attr('transform', `translate(${size.width/2},${size.height/2})`);
+
+            // Add title
+            d3.select(`#${containerId} svg`)
+                .append('text')
+                .attr('x', size.width/2)
+                .attr('y', 20)
+                .attr('text-anchor', 'middle')
+                .style('font-size', '14px')
+                .style('font-weight', 'bold')
+                .text(title);
+
+            const pie = d3.pie()
+                .value(d => d.value)
+                .sort(null);
+
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+
+            const arcs = svg.selectAll('arc')
+                .data(pie(data))
+                .enter()
+                .append('g');
+
+            arcs.append('path')
+                .attr('d', arc)
+                .attr('fill', d => colorScale(d.data.reason || d.data.machine))
+                .on('mouseover', function(event, d) {
+                    const tooltip = d3.select('body')
+                        .append('div')
+                        .attr('class', 'tooltip');
+                    
+                    const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
+                    tooltip.html(`${d.data.reason || d.data.machine}<br>${d.value.toFixed(1)}s (${percent}%)`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', () => d3.selectAll('.tooltip').remove());
+
+            // Add legend
+            const legend = d3.select(`#${containerId}`)
+                .append('div')
+                .attr('class', 'legend');
+
+            data.forEach(d => {
+                const legendItem = legend.append('div')
+                    .attr('class', 'legend-item');
+
+                legendItem.append('div')
+                    .attr('class', 'legend-color')
+                    .style('background-color', colorScale(d.reason || d.machine));
+
+                legendItem.append('span')
+                    .text(d.reason || d.machine);
+            });
+        }
+
+        function createBarChart(data, containerId, title, colorScale) {
+            
+            const size = getContainerSize(containerId);
+            const margin = {
+                top: 40,
+                right: 20,
+                bottom: 100,
+                left: 60
+            };
+            const width = size.width - margin.left - margin.right;
+            const height = size.height - margin.top - margin.bottom;
+
+            const svg = d3.select(`#${containerId}`)
+                .append('svg')
+                .attr('viewBox', `0 0 ${size.width} ${size.height}`)
+                .append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            svg.append('text')
+                .attr('x', width/2)
+                .attr('y', -20)
+                .attr('text-anchor', 'middle')
+                .style('font-size', '14px')
+                .style('font-weight', 'bold')
+                .text(title);
+
+            const x = d3.scaleBand()
+                .range([0, width])
+                .domain(data.map(d => d.reason || d.machine))
+                .padding(0.2);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.value)])
+                .range([height, 0]);
+
+            svg.append('g')
+                .attr('transform', `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll('text')
+                .attr('transform', 'rotate(-45)')
+                .style('text-anchor', 'end')
+                .style('font-size', '10px');
+
+            svg.append('g')
+                .call(d3.axisLeft(y));
+
+            svg.selectAll('bars')
+                .data(data)
+                .enter()
+                .append('rect')
+                .attr('x', d => x(d.reason || d.machine))
+                .attr('y', d => y(d.value))
+                .attr('width', x.bandwidth())
+                .attr('height', d => height - y(d.value))
+                .attr('fill', d => colorScale(d.reason || d.machine))
+                .on('mouseover', function(event, d) {
+                    const tooltip = d3.select('body')
+                        .append('div')
+                        .attr('class', 'tooltip');
+                    
+                    const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
+                    tooltip.html(`${d.reason || d.machine}<br>${d.value.toFixed(1)}s (${percent}%)`)
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', () => d3.selectAll('.tooltip').remove());
+        }
+
+        function createChart() {
+            const chartContainer = document.getElementById('timeline-chart');
+            const containerWidth = 800;
+            
+            // Calculate height based on number of machines (minimum 400px)
+            const minHeight = 300;
+            const heightPerMachine = 25; // Increased spacing between machines
+            
+            const config = {
+                margin: { top: 20, right: 10, bottom: 20, left: 90 },
+                width: containerWidth,
+                height: minHeight,
+                barHeight: 10 // Increased bar height
+            };
+
+            const width = config.width - config.margin.left - config.margin.right;
+            const height = config.height - config.margin.top - config.margin.bottom;
+
+            // Clear existing chart
+            chartContainer.innerHTML = '';
+
+
+            const svg = d3.select('#timeline-chart')
+                .append('svg')
+                .attr('width', config.width)
+                .attr('height', config.height)
+                .append('g')
+                .attr('transform', `translate(${config.margin.left},${config.margin.top})`);
+
+            return { svg, width, height, config };
+        }
+
+        function formatDateTime(date) {
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function updateChart(data,reasonData,machineData) {
+            const reasonColors = d3.scaleOrdinal()
+            .domain(reasonData.map(d => d.reason))
+            .range(d3.schemeSet3);
+
+            const machineColors = d3.scaleOrdinal()
+            .domain(machineData.map(d => d.machine))
+            .range(d3.schemeTableau10);
+            // Update chart height based on number of machines
+            const minHeight = 300;
+            const heightPerMachine = 25;
+            const totalHeight = Math.max(minHeight, data.length * heightPerMachine);
+            
+            const chartContainer = document.getElementById('timeline-chart');
+            const containerWidth = 800;
+            
+            const config = {
+                margin: { top: 20, right: 10, bottom: 20, left: 90 },
+                width: containerWidth,
+                height: totalHeight,
+                barHeight: 10
+            };
+
+            const width = config.width - config.margin.left - config.margin.right;
+            const height = config.height - config.margin.top - config.margin.bottom;
+
+            // Clear existing chart
+            chartContainer.innerHTML = '';
+             // Create new charts
+            createPieChart(reasonData, 'reason-pie', 'Reason wise NPT', reasonColors);
+            createPieChart(machineData, 'machine-pie', 'Machine wise NPT', machineColors);
+            createBarChart(reasonData, 'reason-bar', 'Reason wise NPT', reasonColors);
+            createBarChart(machineData, 'machine-bar', 'Machine wise NPT', machineColors);
+
+            const svg = d3.select('#timeline-chart')
+                .append('svg')
+                .attr('width', config.width)
+                .attr('height', config.height)
+                .append('g')
+                .attr('transform', `translate(${config.margin.left},${config.margin.top})`);
+
+            const y = d3.scaleBand()
+                .domain(data.map(d => d.machine))
+                .range([0, height])
+                .padding(0.1);
+
+            const totalDurations = data.map(machine => {
+                return machine.periods.reduce((sum, period) => sum + period.duration, 0);
+            });
+
+            const today = new Date();
+            today.setHours(8, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(8, 0, 0, 0);
+
+            const x = d3.scaleTime()
+                .domain([today, tomorrow])
+                .range([0, width]);
+
+
+                const color = d3.scaleOrdinal()
+        .domain(["Machine On", "Machine Off", "Future"])
+        .range(["#2ecc71", "#e74c3c", "#f0f0f0"]);
+
+            const machineGroups = svg.selectAll(".machine-group")
+                .data(data)
+                .join("g")
+                .attr("class", "machine-group")
+                .attr("transform", d => `translate(0,${y(d.machine) + (y.bandwidth() - config.barHeight) / 2})`);
+
+                data.forEach((machine, machineIndex) => {
+        machineGroups
+            .filter(d => d.machine === machine.machine)
+            .selectAll("rect")
+            .data(machine.periods)
+            .join("rect")
+            .attr("x", d => x(d.start)) // Changed: Use actual start time for x position
+            .attr("width", d => Math.max(0, x(d.end) - x(d.start))) // Changed: Calculate width based on time difference
+            .attr("height", config.barHeight)
+            .attr("fill", d => d.status === "Empty" ? "#f0f0f0" : color(d.status))
+            .attr("class", "bar")
+            .on("mouseover", function(event, d) {
+                const tooltip = d3.select("body")
+                    .append("div")
+                    .attr("class", "tooltip")
+                    .style("opacity", 0);
+
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                
+                let tooltipContent = `
+                    Status: ${d.status}<br/>
+                    Start: ${formatDateTime(d.start)}<br/>
+                    End: ${formatDateTime(d.end)}<br/>
+                    Duration: ${d.duration.toFixed(1)}s
+                `;
+                if (d.status === "Machine Off") {
+                    tooltipContent += `<br/>Reason: ${d.reason}`;
+                }
+                tooltip.html(tooltipContent)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", function() {
+                d3.selectAll(".tooltip").remove();
+            });
+    });
+
+            // Update x-axis to show hours from 8am to 8am
+            const xAxis = d3.axisBottom(x)
+                .ticks(24)
+                .tickFormat(d3.timeFormat("%H:%M"));
+            
+            const yAxis = d3.axisLeft(y);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(xAxis);
+
+            svg.append("g")
+                .attr("class", "axis")
+                .call(yAxis);
+
+            svg.append("text")
+                .attr("x", width / 2)
+                .attr("y", height + 35)
+                .attr("text-anchor", "middle")
+                .text("Duration (seconds)");
+        }
+
+        // Handle window resize
+//         let resizeTimeout;
+//         window.addEventListener('resize', () => {
+//     clearTimeout(resizeTimeout);
+//     resizeTimeout = setTimeout(() => {
+//         fetch('http://127.0.0.1:5000/api/mc-graph')
+//             .then(response => response.json())
+//             .then(data => {
+//                 const processedData = processFetchedData(data);
+//                 updateChart(processedData); // Redraw the chart
+//             })
+//             .catch(error => console.error('Error fetching data:', error));
+//     }, 250);
+// });  
+        const api = "https://knit-mc-tracker-server.onrender.com"
+
+        // Initial load
+        fetch(`${api}/api/mc-graph`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                const processedData = processFetchedData(data);
+                // console.log(processedData)
+                
+                let reasonwise_npt = [
+                        { reason: "Maintence", value: 0 },
+                        { reason: "Needle Breakage", value: 0 },
+                        { reason: "No Order / No Program", value: 0 },
+                        { reason: "No Yarn", value: 0 },
+                        { reason: "Power", value: 0 },
+                        { reason: "Program Change", value: 0 },
+                        { reason: "Roll Cutting", value: 0 },
+                        { reason: "Yarn Breakage", value: 0 },
+                        { reason: "N/A", value: 0 },
+                        { reason: "Pre-operation period", value: 0 }
+            ]
+                let machinewise_npt = [
+                        
+            ]
+                processedData.forEach(data => {
+                machinewise_npt.push({"machine": data.machine, value: 0})
+                let length = machinewise_npt.length - 1 
+                data.periods.forEach(element => {
+                    if(element.status === "Machine Off"){
+                        machinewise_npt[length].value += element.duration
+                         for(let i =0; i< reasonwise_npt.length; i++){
+                            reasonwise_npt[i].value +=  reasonwise_npt[i].reason === element.reason ? element.duration  : 0
+                         }
+
+                        }
+                    })
+                    
+                });
+                // console.log(reasonwise_npt)
+                // console.log(machinewise_npt)
+                updateChart(processedData,reasonwise_npt,machinewise_npt)
+                
+               
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    
+            setInterval(() => {
+            location.reload();
+        }, 300000); // reload after 30sec
+
+
+    </script>
+</body>
+</html>

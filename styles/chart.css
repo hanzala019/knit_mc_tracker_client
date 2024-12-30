@@ -1,0 +1,53 @@
+/* Timeline Container */
+#timeline-container {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+#timeline {
+    position: relative;
+    height: 20px;
+    background-color: #ddd; /* Default base color */
+    display: flex;
+    overflow: hidden; /* Ensures parts outside the timeline don't show */
+}
+
+.timeline-segment {
+    height: 100%;
+    cursor: pointer; /* Indicate interactivity */
+}
+
+/* Tooltip */
+#tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none; /* Tooltip doesn't interfere with hover */
+    white-space: nowrap;
+    transform: translate(-50%, -100%);
+    z-index: 10;
+}
+
+.hidden {
+    display: none;
+}
+/* Time Indicator */
+#time-indicator {
+    position: absolute;
+    top: -20px; /* Above the timeline */
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+

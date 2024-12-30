@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Machine NPT Tracker</title>
+    <link rel="manifest" href="./static/manifest.json">
+    <link rel="shortcut icon" href="./static/icons/icon-256.png">
+    
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link href="styles/style.css" rel="stylesheet">
+
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">LOGO</div>
+        <div class="nav-links">
+            <a href="./mc_log.html" class="nav-link">Machine Logs</a>
+            <a href="./chart.html" class="nav-link">Machine Chart</a>
+        </div>
+        <div class="user-section">
+            <div class="user-info">
+                <div class="avatar" id="avatar">A</div>
+            </div>
+            <div class="logout-section">
+                <button class="logout-button">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <!-- Machine Wise NPT Table Area -->
+    <div class="container">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">Machine Wise NPT (In Seconds)</div>
+                <div class="panel-body">
+                    <div class="table-responsive size">
+                        <table class="table table-striped table-hover table-bordered" id="machineWiseNPTTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Machine</th>
+                                    <!-- Dynamic headers will be inserted here -->
+                                    <th>N/A</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel-footer" id="totalNPTFooter"></div>
+            </div>
+        </div>
+    </div>
+    <!-- Machine NPT Logs Table Area -->
+    <div class="container">
+        <div class="col-sm-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">Machine NPT Log</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered" id="machineNPTLogTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Machine</th>
+                                    <th>Reason</th>
+                                    <th>Off Time</th>
+                                    <th>On Time</th>
+                                    <th>Duration (sec)</th>
+                                    <!-- <th>Button Delay (sec)</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./service-worker.js").then(r=>{
+        console.log("Service worker registered")
+        console.log(r)
+    })
+    .catch(e =>{
+        console.log("Registration failed")
+        console.log(e)
+    })
+}
+
+        // changing the color of the links based on the what page it is
+        document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav-link");
+            const currentPage = window.location.pathname.split("/").pop(); // Get current page filename
+            // console.log(currentPage)
+            links.forEach(link => {
+                
+                if (link.getAttribute("href").split("/").pop() === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        });
+        let mcLogs1 = []
+        let mcReasons = {}
+        let reasons = []
+        const api = "https://knit-mc-tracker-server.onrender.com"
+        // Sample data
+        window.addEventListener("load", FetchData);
+        window.addEventListener("refresh", FetchData);
+        async function FetchData() {
+            try {
+                const response = await fetch(`${api}/api/mc-log`);
+                const data = await response.json();
+                arr = data.result.complete
+                console.log(data)
+                //  console.log(data.result.complete);
+                 arr.forEach(element => {
+
+                    let temp = {
+                        Machine: element.statuses[0].machine, Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed" ), 
+                        Offtime: element.statuses[0].timestamp, Ontime: element.statuses[2].timestamp, Totaltime: element.timeTaken, ButtonDelay:element.btnDelay
+                    }
+                   mcLogs1.push(temp)
+                 });
+                 reasons = [
+                        { name: "Maintence" },
+                        { name: "Needle Breakage" },
+                        { name: "No Order / No Program" },
+                        { name: "No Yarn" },
+                        { name: "Power" },
+                        { name: "Program Change" },
+                        { name: "Roll Cutting" },
+                        { name: "Yarn Breakage" }
+                    ];
+                 mcReasons = formatData(mcLogs1)
+                 mcLogs1.sort().reverse()
+                 renderMachineNPTLogTable(mcLogs1);
+                renderMachineWiseNPTTable()
+                 
+                 
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        
+        
+  
+        // const mcReasons = {
+        //     Machine1: {
+        //         Reason1: [{ Totaltime: 120 }],
+        //         Reason2: [{ Totaltime: 300 }],
+        //         "": [{ Totaltime: 60 }]
+        //     },
+        //     Machine2: {
+        //         Reason1: [{ Totaltime: 200 }],
+        //         Reason2: [{ Totaltime: 100 }]
+        //     }
+        // };
+        // console.log(mcReasons)
+
+        // Utility function to format seconds into minutes
+        function formatSeconds(seconds) {
+            return (seconds / 60).toFixed(2) + " mins";
+        }
+
+        // formating data for displaying Machine Wise NPT
+        const formatData = (data) => {
+            const mcReasons = {};
+
+            data.forEach((entry) => {
+                console.log(data)
+                const { Machine, Reason, Totaltime } = entry;
+
+                // Initialize the machine key if not present
+                if (!mcReasons[Machine]) {
+                mcReasons[Machine] = {};
+                }
+
+                // Use the reason as the key, default to empty string if null or empty
+                const reason = Reason || "";
+
+                // Initialize the reason key if not present
+                if (!mcReasons[Machine][reason]) {
+                mcReasons[Machine][reason] = [];
+                }
+
+                // Add the total time
+                mcReasons[Machine][reason].push({ Totaltime });
+            });
+
+            return mcReasons;
+        };
+
+        // Render Machine Wise NPT Table
+        function renderMachineWiseNPTTable() {
+            const table = document.getElementById("machineWiseNPTTable");
+            const thead = table.querySelector("thead tr");
+            const tbody = table.querySelector("tbody");
+
+            // Add reason headers
+            reasons.forEach(reason => {
+                const th = document.createElement("th");
+                th.textContent = reason.name;
+                thead.insertBefore(th, thead.children[thead.children.length - 2]);
+            });
+
+            // Add rows
+            let totalNPT = 0;
+            let sl = 1;
+            for (const [machine, data] of Object.entries(mcReasons)) {
+                const row = document.createElement("tr");
+                let total = 0;
+
+                row.innerHTML = `<td>${sl++}</td><td>${machine}</td>`;
+
+                reasons.forEach(reason => {
+                    const time = data[reason.name] ? data[reason.name].reduce((sum, item) => sum + item.Totaltime, 0) : 0;
+                    total += time;
+                    row.innerHTML += `<td>${time}</td>`;
+                });
+
+                const na = data["Unknown/Button not pressed"] ? data["Unknown/Button not pressed"].reduce((sum, item) => sum + item.Totaltime, 0) : 0;
+                total += na;
+                totalNPT += total;
+
+                row.innerHTML += `<td>${na > 0 ? na : ""}</td><td>${total}</td>`;
+                tbody.appendChild(row);
+            }
+
+            // Update footer
+            document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT)}`;
+        }
+
+        // Render Machine NPT Log Table
+        function renderMachineNPTLogTable(mcLogs) {
+            const table = document.getElementById("machineNPTLogTable");
+            const tbody = table.querySelector("tbody");
+
+            mcLogs.forEach((log, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${log.Machine}</td>
+                    <td>${log.Reason}</td>
+                    <td>${log.Offtime}</td>
+                    <td>${log.Ontime}</td>
+                    <td>${log.Totaltime}</td>
+                   
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        // <td>${log.ButtonDelay}</td>
+        // Initialize tables
+        renderMachineWiseNPTTable();
+       
+
+        // Refresh only the table content every 60 seconds
+        setInterval(() => {
+            location.reload();
+        }, 600000);
+    </script>
+</body>
+</html>
+
+<!-- 
+[{'btnDelay': 7.0,
+'statuses': [{'id': 2793,
+              'machine': 'Machine-01',
+              'reason_id': None,
+              'status': 'Machine Off',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 36, 32)},
+             {'id': 2794,
+              'machine': 'Machine-01',
+              'reason_id': 'Yarn Breakage',
+              'status': 'Button Pressed',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 36, 39)},
+             {'id': 2795,
+              'machine': 'Machine-01',
+              'reason_id': None,
+              'status': 'Machine On',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 37, 2)}],
+'timeTaken': 30.0},
+{'btnDelay': 6.0,
+'statuses': [{'id': 2796,
+              'machine': 'Machine-01',
+              'reason_id': None,
+              'status': 'Machine Off',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 39, 48)},
+             {'id': 2797,
+              'machine': 'Machine-01',
+              'reason_id': 'Yarn Breakage',
+              'status': 'Button Pressed',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 39, 54)},
+             {'id': 2798,
+              'machine': 'Machine-01',
+              'reason_id': None,
+              'status': 'Machine On',
+              'timestamp': datetime.datetime(2024, 12, 3, 23, 40, 19)}],
+'timeTaken': 31.0}] -->
