@@ -1,7 +1,7 @@
 {
-    "name": "Ocms",
+    "name": "Ocms Knit NPT",
     "short_name": "Ocms ERP",
-    "start_url": "/",
+    "start_url": "/mc_log.html",
     "background_color": "#333333",
     "theme_color": "#009579",
     "display":"standalone",
