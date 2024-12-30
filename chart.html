@@ -242,14 +242,14 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-           // changing the color of the links based on the what page it is
+        // changing the color of the links based on the what page it is
         document.addEventListener("DOMContentLoaded", () => {
             const links = document.querySelectorAll(".nav-link");
-            const currentPage = window.location.pathname.split("/").pop(); // Get current page filename
-            // console.log(currentPage)
+            const currentPage = window.location.pathname.split("/").pop().split(".")[0]; // Get current page filename
+            console.log(currentPage)
             links.forEach(link => {
-                
-                if (link.getAttribute("href").split("/").pop() === currentPage) {
+                // console.log(link.getAttribute("href").split("/").pop().split(".")[0])
+                if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
                     link.classList.add("active");
                 }
             });
