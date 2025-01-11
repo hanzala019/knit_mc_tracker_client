@@ -75,7 +75,7 @@
 
         // Configuration
         const CONFIG = {
-            api: "http://server.ocmsbd.com:2034",
+            api: "https://knit-mc-tracker-server.onrender.com",
             refreshInterval: 300000, // 5 minutes
             charts: {
                 margin: { top: 20, right: 10, bottom: 20, left: 90 },
@@ -578,7 +578,7 @@
         }
 
         // Initial data fetch and processing
-        fetch(`http://server.ocmsbd.com:2034/api/mc-graph`)
+        fetch(`${CONFIG.api}/api/mc-graph`)
             .then(response => response.json())
             .then(data => {
                 const processedData = processFetchedData(data);
