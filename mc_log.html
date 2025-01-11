@@ -1,24 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Machine NPT Tracker</title>
-    <link rel="manifest" href="./static/manifest.json">
-    <link rel="shortcut icon" href="./static/icons/icon-256.png">
-    
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-    <link href="styles/style.css" rel="stylesheet">
-
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Machine NPT Tracker</title>
+        <link rel="manifest" href="./static/manifest.json">
+        <link rel="shortcut icon" href="./static/icons/icon-256.png">
+        
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <link href="styles/style.css" rel="stylesheet">
+        <style>
+            .filter-panel {
+                background: #f8f9fa;
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 4px;
+                border: 1px solid #ddd;
+                display: none; /* Hidden by default */
+            }
+            .filter-row {
+                display: flex;
+                gap: 15px;
+                margin-bottom: 10px;
+            }
+            .filter-group {
+                flex: 1;
+            }
+            .filter-buttons {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+            .toggle-filters {
+                margin-bottom: 10px;
+                margin-left: 15px;
+            }
+        </style>
+    </head>
 <body>
     <nav class="navbar">
         <div class="logo">LOGO</div>
         <div class="nav-links">
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
         </div>
         <div class="user-section">
             <div class="user-info">
@@ -29,6 +56,52 @@
             </div>
         </div>
     </nav>
+
+     <!-- Add Toggle Button -->
+     <div class="container">
+        <button class="btn btn-primary toggle-filters" onclick="toggleFilters()">
+            <span id="toggleText">Show Filters</span>
+        </button>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="container">
+        <div class="filter-panel" id="filterPanel">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="machineFilter">Machine:</label>
+                    <select class="form-control" id="machineFilter">
+                        <option value="">All Machines</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="reasonFilter">Reason:</label>
+                    <select class="form-control" id="reasonFilter">
+                        <option value="">All Reasons</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="dateFrom">From Date:</label>
+                    <input type="datetime-local" class="form-control" id="dateFrom">
+                </div>
+                <div class="filter-group">
+                    <label for="dateTo">To Date:</label>
+                    <input type="datetime-local" class="form-control" id="dateTo">
+                </div>
+                <div class="filter-group">
+                    <label for="durationFilter">Min Duration (seconds):</label>
+                    <input type="number" class="form-control" id="durationFilter" min="0">
+                </div>
+            </div>
+            <div class="filter-buttons">
+                <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-default" onclick="resetFilters()">Reset Filters</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Machine Wise NPT Table Area -->
     <div class="container">
         <div class="col-sm-12">
@@ -112,44 +185,160 @@
         let mcLogs1 = []
         let mcReasons = {}
         let reasons = []
-        const api = "https://knit-mc-tracker-server.onrender.com"
+        const api = "http://127.0.0.1:5000"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
-        async function FetchData() {
+
+        let originalMcLogs = [];  // Store the original unfiltered data
+        let filtersInitialized = false;  // Track if filters have been initialized
+        
+        function toggleFilters() {
+            const filterPanel = document.getElementById('filterPanel');
+            const toggleText = document.getElementById('toggleText');
+            if (filterPanel.style.display === 'none' || !filterPanel.style.display) {
+                filterPanel.style.display = 'block';
+                toggleText.textContent = 'Hide Filters';
+            } else {
+                filterPanel.style.display = 'none';
+                toggleText.textContent = 'Show Filters';
+            }
+        }
+        
+         async function FetchData() {
             try {
                 const response = await fetch(`${api}/api/mc-log`);
                 const data = await response.json();
-                arr = data.result.complete
-                console.log(data)
-                //  console.log(data.result.complete);
-                 arr.forEach(element => {
-
+                arr = data.result.complete;
+                mcLogs1 = []; // Clear existing logs
+                
+                arr.forEach(element => {
                     let temp = {
-                        Machine: element.statuses[0].machine, Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed" ), 
-                        Offtime: element.statuses[0].timestamp, Ontime: element.statuses[2].timestamp, Totaltime: element.timeTaken, ButtonDelay:element.btnDelay
-                    }
-                   mcLogs1.push(temp)
-                 });
-                 reasons = [
-                        { name: "Maintence" },
-                        { name: "Needle Breakage" },
-                        { name: "No Order / No Program" },
-                        { name: "No Yarn" },
-                        { name: "Power" },
-                        { name: "Program Change" },
-                        { name: "Roll Cutting" },
-                        { name: "Yarn Breakage" }
-                    ];
-                 mcReasons = formatData(mcLogs1)
-                 mcLogs1.sort().reverse()
-                 renderMachineNPTLogTable(mcLogs1);
-                renderMachineWiseNPTTable()
-                 
-                 
+                        Machine: element.statuses[0].machine,
+                        Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
+                        Offtime: element.statuses[0].timestamp,
+                        Ontime: element.statuses[2].timestamp,
+                        Totaltime: element.timeTaken,
+                        ButtonDelay: element.btnDelay
+                    };
+                    mcLogs1.push(temp);
+                });
+                
+                originalMcLogs = [...mcLogs1];  // Store original data
+                if (!filtersInitialized) {
+                    populateFilterOptions();  // Populate filter dropdowns only once
+                    filtersInitialized = true;
+                }
+                
+                reasons = [
+                    { name: "Maintence" },
+                    { name: "Needle Breakage" },
+                    { name: "No Order / No Program" },
+                    { name: "No Yarn" },
+                    { name: "Power" },
+                    { name: "Program Change" },
+                    { name: "Roll Cutting" },
+                    { name: "Yarn Breakage" }
+                ];
+                
+                mcReasons = formatData(mcLogs1);
+                mcLogs1.sort().reverse();
+                clearAndRenderTables(mcLogs1);
+                
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
+        }
+
+        function clearAndRenderTables(data) {
+            // Clear existing table headers and content
+            clearTable('machineWiseNPTTable');
+            clearTable('machineNPTLogTable');
+            
+            // Render tables with new data
+            renderMachineNPTLogTable(data);
+            renderMachineWiseNPTTable();
+        }
+
+        function clearTable(tableId) {
+            const table = document.getElementById(tableId);
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+            
+            // Clear tbody
+            tbody.innerHTML = '';
+            
+            // For machine wise NPT table, reset headers
+            if (tableId === 'machineWiseNPTTable') {
+                thead.querySelector('tr').innerHTML = `
+                    <th>#</th>
+                    <th>Machine</th>
+                    <th>N/A</th>
+                    <th>Total</th>
+                `;
+            }
+        }
+
+        function populateFilterOptions() {
+            // Clear existing options first
+            document.getElementById('machineFilter').innerHTML = '<option value="">All Machines</option>';
+            document.getElementById('reasonFilter').innerHTML = '<option value="">All Reasons</option>';
+            
+            // Populate machine filter
+            const machines = [...new Set(originalMcLogs.map(log => log.Machine))];
+            const machineFilter = document.getElementById('machineFilter');
+            machines.forEach(machine => {
+                const option = document.createElement('option');
+                option.value = machine;
+                option.textContent = machine;
+                machineFilter.appendChild(option);
+            });
+
+            // Populate reason filter
+            const reasonsList = [...new Set(originalMcLogs.map(log => log.Reason))];
+            const reasonFilter = document.getElementById('reasonFilter');
+            reasonsList.forEach(reason => {
+                const option = document.createElement('option');
+                option.value = reason;
+                option.textContent = reason;
+                reasonFilter.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const machineFilter = document.getElementById('machineFilter').value;
+            const reasonFilter = document.getElementById('reasonFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const minDuration = document.getElementById('durationFilter').value;
+
+            let filteredData = originalMcLogs.filter(log => {
+                let matchesMachine = !machineFilter || log.Machine === machineFilter;
+                let matchesReason = !reasonFilter || log.Reason === reasonFilter;
+                let matchesDateFrom = !dateFrom || new Date(log.Offtime) >= new Date(dateFrom);
+                let matchesDateTo = !dateTo || new Date(log.Offtime) <= new Date(dateTo);
+                let matchesDuration = !minDuration || log.Totaltime >= parseInt(minDuration);
+
+                return matchesMachine && matchesReason && matchesDateFrom && matchesDateTo && matchesDuration;
+            });
+
+            mcLogs1 = filteredData;
+            mcReasons = formatData(filteredData);
+            clearAndRenderTables(filteredData);
+        }
+
+        function resetFilters() {
+            // Reset all filter inputs
+            document.getElementById('machineFilter').value = '';
+            document.getElementById('reasonFilter').value = '';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('durationFilter').value = '';
+
+            // Reset data to original
+            mcLogs1 = [...originalMcLogs];
+            mcReasons = formatData(originalMcLogs);
+            clearAndRenderTables(originalMcLogs);
         }
 
         

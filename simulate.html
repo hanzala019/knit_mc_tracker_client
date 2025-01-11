@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Control</title>
+    <link href="styles/style.css" rel="stylesheet">
+    <style>
+        body{ text-align: center;
+            
+        }
+        .big-btn {
+            font-size: 30px;
+            padding: 20px 40px;
+            margin: 20px;
+            cursor: pointer;
+        }
+        .small-btn {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .button-container {
+            margin: 20px;
+        }
+        .input-container {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">LOGO</div>
+        <div class="nav-links">
+            <a href="./mc_log.html" class="nav-link">Machine Logs</a>
+            <a href="./chart.html" class="nav-link">Machine Chart</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
+        </div>
+        <div class="user-section">
+            <div class="user-info">
+                <div class="avatar" id="avatar">A</div>
+            </div>
+            <div class="logout-section">
+                <button class="logout-button">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <h1>Control Panel</h1>
+    
+    <!-- Input field to change mc_no -->
+    <div class="input-container">
+        <label for="mc_no">MC No:</label>
+        <input type="number" id="mc_no" placeholder="Enter MC No" min="1" required/>
+    </div>
+    
+    <!-- Big Buttons for ON and OFF -->
+    <div>
+        <button class="big-btn" id="on-btn">ON</button>
+        <button class="big-btn" id="off-btn">OFF</button>
+    </div>
+
+    <!-- Small Buttons -->
+    <div class="button-container">
+        <button class="small-btn" data-id="6">Maintenance</button>
+        <button class="small-btn" data-id="3">Needle Breakage</button>
+        <button class="small-btn" data-id="7">No Order / No Program</button>
+        <button class="small-btn" data-id="8">No Yarn</button>
+        <button class="small-btn" data-id="5">Power</button>
+        <button class="small-btn" data-id="4">Program Change</button>
+        <button class="small-btn" data-id="2">Roll Cutting</button>
+        <button class="small-btn" data-id="1">Yarn Breakage</button>
+        <button class="small-btn" data-id="9">N/A</button>
+    </div>
+
+    <script>
+        // Initialize navigation
+        document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav-link");
+            const currentPage = window.location.pathname.split("/").pop().split(".")[0];
+            links.forEach(link => {
+                if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        });
+
+        // Function to send data to backend
+        function sendData(id, state) {
+            const currentDateTime = new Date(); // Get current date and time
+            const mcInput = document.getElementById('mc_no');
+            let mc_no = mcInput.value ; // Get mc_no from the input field
+
+            // Ensure mc_no is non-negative
+            if (mc_no < 0) {
+                alert("MC No cannot be negative.");
+                mcInput.value = 0;
+                return;
+            }
+
+            // Format the date and time
+            const formattedDate = currentDateTime.toISOString().split('T')[0].slice(2); // Get YY-MM-DD
+            const time = currentDateTime.toTimeString().split(' ')[0]; // Get HH:MM:SS
+            const formattedDateTime = `${formattedDate} ${time}`;
+
+            // Format mc_no as Machine-0X or Machine-XX
+            if (mc_no < 10) {
+                mc_no = `Machine-0${mc_no}`;
+            } else {
+                mc_no = `Machine-${mc_no}`;
+            }
+
+            const data = {
+                mc_no: mc_no,
+                reason_id: id,
+                state: state,
+                timestamp: formattedDateTime
+            };
+
+            console.log("Sending data:", data);
+
+            fetch('http://127.0.0.1:5000/api/mc-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Data sent successfully:", data);
+            })
+            .catch(error => {
+                console.error("Error sending data:", error);
+            });
+        }
+
+        // Event listeners for ON and OFF buttons
+        document.getElementById('on-btn').addEventListener('click', () => {
+            sendData(null, 'Machine On');
+        });
+
+        document.getElementById('off-btn').addEventListener('click', () => {
+            sendData(null, 'Machine Off');
+        });
+
+        // Event listeners for smaller buttons
+        const smallButtons = document.querySelectorAll('.small-btn');
+        smallButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-id');
+                sendData(id, 'Button Pressed');
+            });
+        });
+    </script>
+</body>
+</html>

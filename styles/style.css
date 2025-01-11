@@ -1,6 +1,14 @@
-*{  
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
+
+.size {
+    font-size: 13px;
+}
+
+/* Login Styles */
 .login-section {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -56,37 +64,21 @@
     margin-bottom: 10px;
 }
 
-
-
-
-
-.size {
-    font-size: 13px;
-}
-
-/* General styles */
+/* Navigation Styles */
 .navbar {
     display: flex;
-    justify-content: space-between; /* Align logo, links, and user-section */
-    align-items: center; /* Vertically align items */
+    justify-content: space-between;
+    align-items: center;
     background-color: #1f252b;
     padding: 10px 20px;
     border-bottom: 1px solid #e1e1e1;
-    flex-wrap: wrap; /* Allow items to wrap for smaller screens */
-}
-
-.logo {
-    color: transparent;
-    font-size: 24px;
-    width: auto;
-    font-weight: bold;
-    /* color: #f5f5f5; */
+    flex-wrap: wrap;
 }
 
 .nav-links {
     display: flex;
-    gap: 10px; /* Space between links */
-    flex-wrap: wrap; /* Wrap links on smaller screens */
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .nav-link {
@@ -96,112 +88,25 @@
     font-weight: 500;
     transition: color 0.3s ease, background-color 0.3s ease;
     padding: 5px 10px;
-    border-radius: 5px; /* For smooth highlighting */
+    border-radius: 5px;
 }
 
 .nav-link:hover {
-    color: #007bff; /* Highlight color on hover */
+    color: #007bff;
 }
 
 .nav-link.active {
-    background-color: #007bff; /* Highlight background for active link */
-    color: #fff; /* White text for active link */
+    background-color: #007bff;
+    color: #fff;
     font-weight: bold;
-}
-
-.user-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the avatar and logout button vertically */
-    gap: 10px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center; /* Align the avatar and username */
-    justify-content: center;
-}
-
-.avatar {
-    color: transparent;
-    background-color: transparent;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 40px;
-    height: 40px;
-    /* background-color: #007bff;
-    color: #fff; */
-    font-size: 20px;
-    font-weight: bold;
-    border-radius: 50%;
 }
 
 .logout-button {
-    background-color: transparent;
-    color: transparent;
-    /* background-color: #dc3545;
-    color: #fff; */
-    border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    font-size: 14px;
-    /* cursor: pointer; */
+   display: none;
 }
 
-.logout-button:hover {
-    /* background-color: #c82333; */
-}
-
-/* Responsive styles */
 @media (max-width: 768px) {
-    .logo {
-        color: transparent;
-        font-size: 18px;
-    }
-
     .nav-link {
         font-size: 10px;
-    }
-
-    .avatar {
-        color: transparent;
-        background-color: transparent;
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
-
-    .logout-button {
-        background-color: transparent;
-        color: transparent;
-        font-size: 10px;
-        padding: 3px 6px;
-    }
-}
-
-@media (max-width: 480px) {
-    .logo {
-        color: transparent;
-        font-size: 18px;
-    }
-
-    .nav-link {
-        font-size: 10px;
-    }
-
-    .avatar {
-        color: transparent;
-        background-color: transparent;
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
-
-    .logout-button {
-        background-color: transparent;
-        color: transparent;
-        font-size: 10px;
-        padding: 3px 6px;
     }
 }
