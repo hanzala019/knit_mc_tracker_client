@@ -207,7 +207,7 @@
         
          async function FetchData() {
             try {
-                const response = await fetch(`${api}/api/mc-log`);
+                const response = await fetch(`http://server.ocmsbd.com:2034/api/mc-log`);
                 const data = await response.json();
                 arr = data.result.complete;
                 mcLogs1 = []; // Clear existing logs

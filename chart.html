@@ -578,7 +578,7 @@
         }
 
         // Initial data fetch and processing
-        fetch(`${CONFIG.api}/api/mc-graph`)
+        fetch(`http://server.ocmsbd.com:2034/api/mc-graph`)
             .then(response => response.json())
             .then(data => {
                 const processedData = processFetchedData(data);
