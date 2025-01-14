@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <!-- <link rel="manifest" href="./static/manifest.json">
+    <link rel="shortcut icon" href="./static/icons/icon-256.png">
+    <link href="styles/style.css" rel="stylesheet"> -->
+</head>
+<body class="login-section">
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <div id="username-error" class="error"></div>
+        <input type="text" id="username" placeholder="Username">
+        <div id="password-error" class="error"></div>
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="validateLogin()">Login</button>
+    </div>
+    
+    <script>
+
+        function validateLogin() {
+            // Clear previous error messages and reset borders
+            const usernameError = document.getElementById('username-error');
+            const passwordError = document.getElementById('password-error');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+    
+            usernameError.textContent = '';
+            passwordError.textContent = '';
+            usernameInput.classList.remove('error-border');
+            passwordInput.classList.remove('error-border');
+            
+            // Get the input values
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            fetch()
+    
+            // Validation for username
+            if (!username) {
+                usernameError.textContent = 'Please enter your username.';
+                usernameInput.classList.add('error-border');
+            }
+    
+            // Validation for password
+            if (!password) {
+                passwordError.textContent = 'Please enter your password.';
+                passwordInput.classList.add('error-border');
+            }
+    
+            // If both fields are valid, simulate login process
+            if (username && password) {
+                if (username === 'admin' && password === 'password123') {
+                    alert('Login successful!');
+                } else {
+                    passwordError.textContent = 'Invalid password.';
+                    passwordInput.classList.add('error-border');
+                    usernameError.textContent = 'Inavlid username.';
+                    usernameInput.classList.add('error-border');
+                }
+            }
+        }
+//     if("serviceWorker" in navigator){
+//     navigator.serviceWorker.register("./service-worker.js").then(r=>{
+//         console.log("Service worker registered")
+//         console.log(r)
+//     })
+//     .catch(e =>{
+//         console.log("Registration failed")
+//         console.log(e)
+//     })
+// }
+
+// console.log(Notification.permission)
+// if ('Notification' in window && Notification.permission !== 'granted') {
+//   Notification.requestPermission().then((permission) => {
+//     if (permission === 'granted') {
+
+//       console.log('Notification permission granted.');
+//     } else {
+//       console.warn('Notification permission denied.');
+//     }
+//   });
+// }
+    </script>
+
+</body>
+</html>

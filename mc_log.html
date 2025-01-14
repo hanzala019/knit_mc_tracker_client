@@ -7,9 +7,9 @@
         <link rel="manifest" href="./static/manifest.json">
         <link rel="shortcut icon" href="./static/icons/icon-256.png">
         
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
         <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
         <link href="styles/style.css" rel="stylesheet">
         <style>
             .filter-panel {
@@ -41,20 +41,20 @@
     </head>
 <body>
     <nav class="navbar">
-        <div class="logo">LOGO</div>
+        <!-- <div class="logo">LOGO</div> -->
         <div class="nav-links">
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
             <a href="./simulate.html" class="nav-link">Simulation</a>
         </div>
-        <div class="user-section">
+        <!-- <div class="user-section">
             <div class="user-info">
                 <div class="avatar" id="avatar">A</div>
             </div>
             <div class="logout-section">
                 <button class="logout-button">Logout</button>
             </div>
-        </div>
+        </div> -->
     </nav>
 
      <!-- Add Toggle Button -->
@@ -89,10 +89,6 @@
                 <div class="filter-group">
                     <label for="dateTo">To Date:</label>
                     <input type="datetime-local" class="form-control" id="dateTo">
-                </div>
-                <div class="filter-group">
-                    <label for="durationFilter">Min Duration (seconds):</label>
-                    <input type="number" class="form-control" id="durationFilter" min="0">
                 </div>
             </div>
             <div class="filter-buttons">
@@ -184,15 +180,25 @@
         });
         let mcLogs1 = []
         let mcReasons = {}
-        let reasons = []
-        const api = "https://knit-mc-tracker-server.onrender.com"
+        let reasons = [
+            {name:"Maintence"},
+            {name:"Needle Breakage"},
+            {name:"No Order / No Program"},
+            {name:"No Yarn"},
+            {name:"Power"},
+            {name:"Program Change"},
+            {name:"Roll Cutting"},
+            {name:"Yarn Breakage"},
+            
+        ]
+        const api = "http://127.0.0.1:5000"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
 
         let originalMcLogs = [];  // Store the original unfiltered data
         let filtersInitialized = false;  // Track if filters have been initialized
-        
+        let allMc = []
         function toggleFilters() {
             const filterPanel = document.getElementById('filterPanel');
             const toggleText = document.getElementById('toggleText');
@@ -211,7 +217,9 @@
                 const data = await response.json();
                 arr = data.result.complete;
                 mcLogs1 = []; // Clear existing logs
-                
+                console.log(data)
+                allMc = data.machines
+                if (data.success)
                 arr.forEach(element => {
                     let temp = {
                         Machine: element.statuses[0].machine,
@@ -230,16 +238,7 @@
                     filtersInitialized = true;
                 }
                 
-                reasons = [
-                    { name: "Maintence" },
-                    { name: "Needle Breakage" },
-                    { name: "No Order / No Program" },
-                    { name: "No Yarn" },
-                    { name: "Power" },
-                    { name: "Program Change" },
-                    { name: "Roll Cutting" },
-                    { name: "Yarn Breakage" }
-                ];
+                
                 
                 mcReasons = formatData(mcLogs1);
                 mcLogs1.sort().reverse();
@@ -285,9 +284,14 @@
             document.getElementById('reasonFilter').innerHTML = '<option value="">All Reasons</option>';
             
             // Populate machine filter
-            const machines = [...new Set(originalMcLogs.map(log => log.Machine))];
+
+                console.log(originalMcLogs)
+ 
+             
+              
+            
             const machineFilter = document.getElementById('machineFilter');
-            machines.forEach(machine => {
+            allMc.forEach(machine => {
                 const option = document.createElement('option');
                 option.value = machine;
                 option.textContent = machine;
@@ -295,51 +299,146 @@
             });
 
             // Populate reason filter
-            const reasonsList = [...new Set(originalMcLogs.map(log => log.Reason))];
+            
             const reasonFilter = document.getElementById('reasonFilter');
-            reasonsList.forEach(reason => {
+            reasons.forEach(reason => {
+                console.log(reason)
                 const option = document.createElement('option');
-                option.value = reason;
-                option.textContent = reason;
+                option.value = reason.name;
+                option.textContent = reason.name;
                 reasonFilter.appendChild(option);
             });
         }
 
-        function applyFilters() {
-            const machineFilter = document.getElementById('machineFilter').value;
-            const reasonFilter = document.getElementById('reasonFilter').value;
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo = document.getElementById('dateTo').value;
-            const minDuration = document.getElementById('durationFilter').value;
+    // function getStartOfCurrentMonth() {
+    //     const date = new Date();
+    //     return new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0];
+    // }
 
-            let filteredData = originalMcLogs.filter(log => {
-                let matchesMachine = !machineFilter || log.Machine === machineFilter;
-                let matchesReason = !reasonFilter || log.Reason === reasonFilter;
-                let matchesDateFrom = !dateFrom || new Date(log.Offtime) >= new Date(dateFrom);
-                let matchesDateTo = !dateTo || new Date(log.Offtime) <= new Date(dateTo);
-                let matchesDuration = !minDuration || log.Totaltime >= parseInt(minDuration);
+    // Update the applyFilters function
+    async function applyFilters() {
+        const machineFilter = document.getElementById('machineFilter').value;
+        const reasonFilter = document.getElementById('reasonFilter').value;
+        
+        let dateFrom = document.getElementById('dateFrom').value;
+        let dateTo = document.getElementById('dateTo').value;
+        
 
-                return matchesMachine && matchesReason && matchesDateFrom && matchesDateTo && matchesDuration;
-            });
+        // Handle date defaults
+        if (dateFrom && !dateTo) {
+            // If only 'from' date is selected, set 'to' date to the current date and time with +6 hours
+            let now = new Date();
+            now.setHours(now.getHours() + 6); // Add 6 hours
+            dateTo = now.toISOString().split('T');
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
 
-            mcLogs1 = filteredData;
-            mcReasons = formatData(filteredData);
-            clearAndRenderTables(filteredData);
+            // Adjust 'from' date to include +6 hours
+            let fromDate = new Date(dateFrom + ":00");
+            fromDate.setHours(fromDate.getHours() + 6);
+            dateFrom = fromDate.toISOString().split('T');
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+
+            document.getElementById('dateTo').value = dateTo;
+        } else if (!dateFrom && dateTo) {
+            // If only 'to' date is selected, set 'from' date to the first day of the current month with +6 hours
+            let now = new Date();
+            let firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            firstDayOfMonth.setHours(firstDayOfMonth.getHours() + 6); // Add 6 hours
+            dateFrom = firstDayOfMonth.toISOString().split('T');
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+
+            // Adjust 'to' date to include +6 hours
+            let toDate = new Date(dateTo + ":00");
+            toDate.setHours(toDate.getHours() + 6);
+            dateTo = toDate.toISOString().split('T');
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+
+            document.getElementById('dateFrom').value = dateFrom;
+        } else if(dateFrom && dateTo) {
+            // Adjust both 'from' and 'to' dates to include +6 hours
+            let fromDate = new Date(dateFrom + ":00");
+            fromDate.setHours(fromDate.getHours() + 6);
+            dateFrom = fromDate.toISOString().split('T');
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+
+            let toDate = new Date(dateTo + ":00");
+            toDate.setHours(toDate.getHours() + 6);
+            dateTo = toDate.toISOString().split('T');
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
         }
 
-        function resetFilters() {
-            // Reset all filter inputs
-            document.getElementById('machineFilter').value = '';
-            document.getElementById('reasonFilter').value = '';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-            document.getElementById('durationFilter').value = '';
 
-            // Reset data to original
-            mcLogs1 = [...originalMcLogs];
-            mcReasons = formatData(originalMcLogs);
-            clearAndRenderTables(originalMcLogs);
+        
+        console.log(dateFrom, dateTo)
+        let filteredData;
+        
+        // Make API call if either date filter is set
+        if (dateFrom || dateTo) {
+            queryData = {
+                        dateFrom: dateFrom,
+                        dateTo: dateTo ,
+                        mc_no: machineFilter ? machineFilter : null,
+                        
+                        
+                    }
+                console.log(queryData)
+            try {
+                const response = await fetch(`${api}/api/mc-log`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(queryData)
+                });
+                
+                const data = await response.json();
+                console.log(data)
+                if (data.success) {
+                    filteredData = data.result.complete.map(element => ({
+                        Machine: element.statuses[0].machine,
+                        Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
+                        Offtime: element.statuses[0].timestamp,
+                        Ontime: element.statuses[2].timestamp,
+                        Totaltime: element.timeTaken,
+                        ButtonDelay: element.btnDelay
+                    }));
+                } else {
+                    console.error('API call failed:', data.message);
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching filtered data:', error);
+                return;
+            }
+        } else {
+            // Use client-side filtering if no date filters are set
+            filteredData = originalMcLogs;
         }
+
+        // Apply remaining filters client-side
+        filteredData = filteredData.filter(log => {
+            let matchesMachine = !machineFilter || log.Machine === machineFilter;
+            let matchesReason = !reasonFilter || log.Reason === reasonFilter;
+            console.log(log.Reason, reasonFilter)
+            return matchesMachine && matchesReason;
+        });
+        console.log(filteredData)
+        mcLogs1 = filteredData;
+        mcReasons = formatData(filteredData);
+        clearAndRenderTables(filteredData);
+    }
+
+    function resetFilters() {
+        location.reload()
+        // console.log("reset")
+        // const machineFilter = document.getElementById('machineFilter').value = '';
+        // const reasonFilter = document.getElementById('reasonFilter').value = '';
+        
+        // let dateFrom = document.getElementById('dateFrom').value = '';
+        // let dateTo = document.getElementById('dateTo').value = '';
+        
+    }
+
 
         
         
@@ -367,7 +466,7 @@
             const mcReasons = {};
 
             data.forEach((entry) => {
-                console.log(data)
+                // console.log(data)
                 const { Machine, Reason, Totaltime } = entry;
 
                 // Initialize the machine key if not present
@@ -461,39 +560,3 @@
     </script>
 </body>
 </html>
-
-<!-- 
-[{'btnDelay': 7.0,
-'statuses': [{'id': 2793,
-              'machine': 'Machine-01',
-              'reason_id': None,
-              'status': 'Machine Off',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 36, 32)},
-             {'id': 2794,
-              'machine': 'Machine-01',
-              'reason_id': 'Yarn Breakage',
-              'status': 'Button Pressed',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 36, 39)},
-             {'id': 2795,
-              'machine': 'Machine-01',
-              'reason_id': None,
-              'status': 'Machine On',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 37, 2)}],
-'timeTaken': 30.0},
-{'btnDelay': 6.0,
-'statuses': [{'id': 2796,
-              'machine': 'Machine-01',
-              'reason_id': None,
-              'status': 'Machine Off',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 39, 48)},
-             {'id': 2797,
-              'machine': 'Machine-01',
-              'reason_id': 'Yarn Breakage',
-              'status': 'Button Pressed',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 39, 54)},
-             {'id': 2798,
-              'machine': 'Machine-01',
-              'reason_id': None,
-              'status': 'Machine On',
-              'timestamp': datetime.datetime(2024, 12, 3, 23, 40, 19)}],
-'timeTaken': 31.0}] -->

@@ -67,7 +67,7 @@
 /* Navigation Styles */
 .navbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     background-color: #1f252b;
     padding: 10px 20px;
@@ -92,6 +92,7 @@
 }
 
 .nav-link:hover {
+    text-decoration: none;
     color: #007bff;
 }
 
