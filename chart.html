@@ -81,7 +81,7 @@
     </style>
 </head>
 <body>
-    <script src="nav.js"></script>
+    <!-- <script src="nav.js"></script> -->
     
     <nav class="navbar">
         <!-- <div class="logo">LOGO</div> -->
@@ -842,8 +842,9 @@ function updateCheckboxes(data, reasonData, machineData) {
         fetch(`${CONFIG.api}/api/mc-graph`)
             .then(response => response.json())
             .then(data => {
+                console.log(data)
                 const processedData = processFetchedData(data);
-                
+                console.log(processedData)
                 let reasonwise_npt = [
                     { reason: "Maintence", value: 0 },
                     { reason: "Needle Breakage", value: 0 },

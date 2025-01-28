@@ -20,6 +20,9 @@
     </div>
     
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            window.location.href = "chart.html"
+        })
         function validateLogin() {
             // Clear previous error messages and reset borders
             const emailError = document.getElementById('email-error');
@@ -53,41 +56,41 @@
     
             // If both fields are valid, simulate login process
             if (email && password) {
-                
-                const data = {
-                    email,
-                    password
-                }
-                // sending post request to backend for login
-                    fetch(`${api}/api/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
+                window.location.href = "chart.html"
+                // const data = {
+                //     email,
+                //     password
+                // }
+                // // sending post request to backend for login
+                //     fetch(`${api}/api/login`, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json'
+                //     },
+                //     body: JSON.stringify(data)
+                // })
+                // .then(response => response.json())
+                // .then(data => {
                     
-                    // storing the user info in local storage if user exists
-                    if(data.status = "success"){
-                        window.localStorage.setItem("user", JSON.stringify(data.user))
-                        window.location.href = "chart.html"
-                    }
-                    // showing error for invalid credentials
-                    else{
+                //     // storing the user info in local storage if user exists
+                //     if(data.status = "success"){
+                //         window.localStorage.setItem("user", JSON.stringify(data.user))
+                //         window.location.href = "chart.html"
+                //     }
+                //     // showing error for invalid credentials
+                //     else{
                         
-                        passwordError.textContent = 'Invalid password.';
-                        passwordInput.classList.add('error-border');
-                        emailError.textContent = 'Inavlid email.';
-                        emailInput.classList.add('error-border');
+                //         passwordError.textContent = 'Invalid password.';
+                //         passwordInput.classList.add('error-border');
+                //         emailError.textContent = 'Inavlid email.';
+                //         emailInput.classList.add('error-border');
              
-                    }
-                    console.log("Data sent successfully and Recieved:", data);
-                })
-                .catch(error => {
-                    console.error("Error sending data:", error);
-                });
+                //     }
+                //     console.log("Data sent successfully and Recieved:", data);
+                // })
+                // .catch(error => {
+                //     console.error("Error sending data:", error);
+                // });
 
             }
         }
