@@ -118,8 +118,8 @@
             };
 
             console.log("Sending data:", data);
-
-            fetch('https://knit-mc-tracker-server.onrender.com/api/mc-status', {
+            const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
+            fetch(`${api}/api/mc-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

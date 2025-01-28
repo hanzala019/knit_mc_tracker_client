@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link href="styles/style.css" rel="stylesheet">
+    <style>
+        .editing-row input {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script src="nav.js"></script>
+    <nav class="navbar">
+        <div class="container-fluid">
+            <div class="nav-links">
+                <a href="./mc_log.html" class="nav-link">Machine Logs</a>
+                <a href="./chart.html" class="nav-link">Machine Chart</a>
+                <a href="./simulate.html" class="nav-link">Simulation</a>
+                <a href="./users.html" class="nav-link" id="usersLink">Users</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>User Management</h2>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User Id</th>
+                    <th>Name</th>
+                    
+                    <th>Email</th>
+                    <th>Password</th>
+                    <th>Access</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <!-- User rows will be dynamically added here -->
+            </tbody>
+        </table>
+
+        <button class="btn btn-success" onclick="showAddUserForm()">+ Add User</button>
+    </div>
+
+    <script>
+         company = JSON.parse(localStorage.getItem("user"))[3]
+
+          // changing the color of the links based on the what page it is
+          document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav-link");
+            const currentPage = window.location.pathname.split("/").pop().split(".")[0]; // Get current page filename
+            console.log(currentPage)
+            links.forEach(link => {
+                // console.log(link.getAttribute("href").split("/").pop().split(".")[0])
+                if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        });
+
+        function generateCustomString(companyName) {
+            const randomNumber = Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
+            return `${companyName}-${randomNumber}`;
+}
+
+        let users = [];
+        const api = 'http://127.0.0.1:5000';
+
+        // Fetch users when page loads
+        async function fetchUsers() {
+            const UserInfo = {
+                company: company,
+                reason: "get"
+            };
+            try {
+                const response = await fetch(`${api}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(UserInfo)
+                });
+                data = await response.json();
+                users = data.users
+                console.log(data)
+                renderUsers();
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                alert('Failed to load users');
+            }
+        }
+
+        function renderUsers() {
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = '';
+            
+            users.forEach((user, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    
+                    <td>${user.email}</td>
+                    <td>${user.password}</td>
+                    <td>${user.access}</td>
+                    <td>
+                        <button class="btn btn-warning btn-xs" onclick="editUser(${index})">Edit</button>
+                        <button class="btn btn-danger btn-xs" onclick="deleteUser(${index})">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function editUser(index) {
+            const tableBody = document.getElementById('userTableBody');
+            const user = users[index];
+            const row = tableBody.children[index];
+
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="text" value="${user.id}" disabled></td>
+                <td><input type="text" value="${user.name}"></td>
+                
+                <td><input type="email" value="${user.email}"></td>
+                <td><input type="password" value="${user.password}"></td>
+                <td>
+                    <select>
+                        <option value="Granted" ${user.access === 'Granted' ? 'selected' : ''}>Granted</option>
+                        <option value="Denied" ${user.access === 'Denied' ? 'selected' : ''}>Denied</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-success btn-xs" onclick="saveUser(${index})">Save</button>
+                    <button class="btn btn-default btn-xs" onclick="renderUsers()">Cancel</button>
+                </td>
+            `;
+        }
+
+        async function saveUser(index) {
+            const row = document.getElementById('userTableBody').children[index];
+            const inputs = row.getElementsByTagName('input');
+            const select = row.getElementsByTagName('select')[0];
+            console.log(inputs)
+            const updatedUser = {
+                id: users[index].id,
+                company: company,
+                name: inputs[1].value,
+                email: inputs[2].value,
+                password: inputs[3].value,
+                access: select.value,
+                reason: "update"
+            };
+
+            try {
+                const response = await fetch(`${api}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedUser)
+                });
+                    console.log(response)
+                if (response.ok) {
+                    users[index] = {...users[index], ...updatedUser};
+                    renderUsers();
+                } else {
+                    throw new Error('Failed to update user');
+                }
+            } catch (error) {
+                console.error('Error updating user:', error);
+                alert('Failed to update user');
+            }
+        }
+
+        async function deleteUser(index) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                const row = document.getElementById('userTableBody').children[index];
+                const inputs = row.getElementsByTagName('input');
+                const select = row.getElementsByTagName('select')[0];
+
+                const updatedUser = {
+                    id: users[index].id,
+                    reason: "delete"
+                };
+
+                try {
+                    const response = await fetch(`${api}/api/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updatedUser)
+                    });
+
+                    if (response.ok) {
+                        users.splice(index, 1);
+                        renderUsers();
+                    } else {
+                        throw new Error('Failed to delete user');
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    alert('Failed to delete user');
+                }
+            }
+        }
+
+        function showAddUserForm() {
+            const tableBody = document.getElementById('userTableBody');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${users.length + 1}</td>
+                <td><input type="text" placeholder="User Id" disabled></td>
+                <td><input type="text" placeholder="Name"></td>
+                <td><input type="email" placeholder="Email"></td>
+                <td><input type="password" placeholder="Password"></td>
+                <td>
+                    <select>
+                        <option value="Granted">Granted</option>
+                        <option value="Denied">Denied</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-success btn-xs" onclick="addUser()">Add</button>
+                    <button class="btn btn-default btn-xs" onclick="renderUsers()">Cancel</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        async function addUser() {
+            const tableBody = document.getElementById('userTableBody');
+            const lastRow = tableBody.lastChild;
+            const inputs = lastRow.getElementsByTagName('input');
+            const select = lastRow.getElementsByTagName('select')[0];
+
+            const newUser = {
+                company: company,
+                name: inputs[1].value,
+                email: inputs[2].value,
+                password: inputs[3].value,
+                access: select.value,
+                reason: "add"
+            };
+            console.log(newUser)
+            try {
+                const response = await fetch(`${api}/api/users`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newUser)
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    throw new Error('Failed to add user');
+                }
+            } catch (error) {
+                console.error('Error adding user:', error);
+                alert('Failed to add user');
+            }
+        }
+
+        // Fetch users when page loads
+        document.addEventListener('DOMContentLoaded', fetchUsers);
+    </script>
+</body>
+</html>

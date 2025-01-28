@@ -40,6 +40,7 @@
         </style>
     </head>
 <body>
+    <script  src="nav.js"></script>
     <nav class="navbar">
         <!-- <div class="logo">LOGO</div> -->
         <div class="nav-links">
@@ -191,7 +192,7 @@
             {name:"Yarn Breakage"},
             
         ]
-        const api = "https://knit-mc-tracker-server.onrender.com"
+        const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
@@ -422,43 +423,33 @@
             console.log(log.Reason, reasonFilter)
             return matchesMachine && matchesReason;
         });
-        console.log(filteredData)
+        // console.log(filteredData)
         mcLogs1 = filteredData;
         mcReasons = formatData(filteredData);
         clearAndRenderTables(filteredData);
     }
 
     function resetFilters() {
-        location.reload()
-        // console.log("reset")
-        // const machineFilter = document.getElementById('machineFilter').value = '';
-        // const reasonFilter = document.getElementById('reasonFilter').value = '';
-        
-        // let dateFrom = document.getElementById('dateFrom').value = '';
-        // let dateTo = document.getElementById('dateTo').value = '';
-        
+        location.reload() 
     }
 
 
         
         
   
-        // const mcReasons = {
-        //     Machine1: {
-        //         Reason1: [{ Totaltime: 120 }],
-        //         Reason2: [{ Totaltime: 300 }],
-        //         "": [{ Totaltime: 60 }]
-        //     },
-        //     Machine2: {
-        //         Reason1: [{ Totaltime: 200 }],
-        //         Reason2: [{ Totaltime: 100 }]
-        //     }
-        // };
-        // console.log(mcReasons)
-
-        // Utility function to format seconds into minutes
+        
+        // Utility function to format seconds into minutes to hours
         function formatSeconds(seconds) {
-            return (seconds / 60).toFixed(2) + " mins";
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+
+            if (hours > 0 && minutes > 0) {
+                return `${hours} hours ${minutes} minutes`;
+            } else if (hours > 0) {
+                return `${hours} hours`;
+            } else {
+                return `${minutes} minutes`;
+            }
         }
 
         // formating data for displaying Machine Wise NPT

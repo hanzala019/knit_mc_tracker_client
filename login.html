@@ -5,44 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
     <!-- <link rel="manifest" href="./static/manifest.json">
-    <link rel="shortcut icon" href="./static/icons/icon-256.png">
-    <link href="styles/style.css" rel="stylesheet"> -->
+    <link rel="shortcut icon" href="./static/icons/icon-256.png"> -->
+    <link href="styles/style.css" rel="stylesheet">
 </head>
 <body class="login-section">
 
     <div class="login-container">
         <h2>Login</h2>
-        <div id="username-error" class="error"></div>
-        <input type="text" id="username" placeholder="Username">
+        <div id="email-error" class="error"></div>
+        <input type="email" id="email" placeholder="email">
         <div id="password-error" class="error"></div>
         <input type="password" id="password" placeholder="Password">
         <button onclick="validateLogin()">Login</button>
     </div>
     
     <script>
-
         function validateLogin() {
             // Clear previous error messages and reset borders
-            const usernameError = document.getElementById('username-error');
+            const emailError = document.getElementById('email-error');
             const passwordError = document.getElementById('password-error');
-            const usernameInput = document.getElementById('username');
+            const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
     
-            usernameError.textContent = '';
+            emailError.textContent = '';
             passwordError.textContent = '';
-            usernameInput.classList.remove('error-border');
+            emailInput.classList.remove('error-border');
             passwordInput.classList.remove('error-border');
             
             // Get the input values
-            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
             const password = passwordInput.value.trim();
 
-            fetch()
+            const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
+           
     
-            // Validation for username
-            if (!username) {
-                usernameError.textContent = 'Please enter your username.';
-                usernameInput.classList.add('error-border');
+            // Validation for email
+            if (!email) {
+                emailError.textContent = 'Please enter your email.';
+                emailInput.classList.add('error-border');
             }
     
             // Validation for password
@@ -52,15 +52,43 @@
             }
     
             // If both fields are valid, simulate login process
-            if (username && password) {
-                if (username === 'admin' && password === 'password123') {
-                    alert('Login successful!');
-                } else {
-                    passwordError.textContent = 'Invalid password.';
-                    passwordInput.classList.add('error-border');
-                    usernameError.textContent = 'Inavlid username.';
-                    usernameInput.classList.add('error-border');
+            if (email && password) {
+                
+                const data = {
+                    email,
+                    password
                 }
+                // sending post request to backend for login
+                    fetch(`${api}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    
+                    // storing the user info in local storage if user exists
+                    if(data.status = "success"){
+                        window.localStorage.setItem("user", JSON.stringify(data.user))
+                        window.location.href = "chart.html"
+                    }
+                    // showing error for invalid credentials
+                    else{
+                        
+                        passwordError.textContent = 'Invalid password.';
+                        passwordInput.classList.add('error-border');
+                        emailError.textContent = 'Inavlid email.';
+                        emailInput.classList.add('error-border');
+             
+                    }
+                    console.log("Data sent successfully and Recieved:", data);
+                })
+                .catch(error => {
+                    console.error("Error sending data:", error);
+                });
+
             }
         }
 //     if("serviceWorker" in navigator){
