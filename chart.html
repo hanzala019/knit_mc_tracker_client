@@ -512,7 +512,7 @@
                                 start: today,
                                 end: firstEvent,
                                 duration: (firstEvent - today) / 1000,
-                                reason: "Pre-operation period"
+                                reason: "No operation data"
                             });
                         }
 
@@ -643,21 +643,21 @@
             "Roll Cutting",
             "Yarn Breakage",
             "N/A",
-            "Pre-operation period",
+            "No operation data",
             "Machine On",
             "Future"
         ])
         .range([
-            "#FFa999",
-            "#66b2FF",
+            "#22aa11",
+            "#FFA999",
             "#99cF99",
             "#FFdC99",
             "#11EEEE",
             "#cCFF",
-            "#FF1166",
+            "#FFFFAA",
             "#FF22FF",
             "#ff1a1a",
-            "#FFA999",
+            "#FFAACC",
             "#00e600",
             "#f0f0f0"
         ]);
@@ -855,7 +855,7 @@ function updateCheckboxes(data, reasonData, machineData) {
                     { reason: "Roll Cutting", value: 0 },
                     { reason: "Yarn Breakage", value: 0 },
                     { reason: "N/A", value: 0 },
-                    { reason: "Pre-operation period", value: 0 }
+                    { reason: "No operation data", value: 0 }
                 ];
 
                 let machinewise_npt = [];

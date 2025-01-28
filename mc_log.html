@@ -212,43 +212,44 @@
             }
         }
         
-         async function FetchData() {
-            try {
-                const response = await fetch(`${api}/api/mc-log`);
-                const data = await response.json();
-                arr = data.result.complete;
-                mcLogs1 = []; // Clear existing logs
-                console.log(data)
-                allMc = data.machines
-                if (data.success)
-                arr.forEach(element => {
-                    let temp = {
-                        Machine: element.statuses[0].machine,
-                        Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
-                        Offtime: element.statuses[0].timestamp,
-                        Ontime: element.statuses[2].timestamp,
-                        Totaltime: element.timeTaken,
-                        ButtonDelay: element.btnDelay
-                    };
-                    mcLogs1.push(temp);
-                });
-                
-                originalMcLogs = [...mcLogs1];  // Store original data
-                if (!filtersInitialized) {
-                    populateFilterOptions();  // Populate filter dropdowns only once
-                    filtersInitialized = true;
-                }
-                
-                
-                
-                mcReasons = formatData(mcLogs1);
-                mcLogs1.sort().reverse();
-                clearAndRenderTables(mcLogs1);
-                
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+        async function FetchData() {
+    try {
+        const response = await fetch(`${api}/api/mc-log`);
+        const data = await response.json();
+        const arr = data.result?.complete || [];
+        mcLogs1 = []; // Clear existing logs
+        
+        allMc = data.machines || [];
+        
+        if (data.success && arr.length > 0) {
+            arr.forEach(element => {
+                let temp = {
+                    Machine: element.statuses[0].machine,
+                    Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
+                    Offtime: element.statuses[0].timestamp,
+                    Ontime: element.statuses[2].timestamp,
+                    Totaltime: element.timeTaken,
+                    ButtonDelay: element.btnDelay
+                };
+                mcLogs1.push(temp);
+            });
         }
+        
+        originalMcLogs = [...mcLogs1];  // Store original data
+        if (!filtersInitialized) {
+            populateFilterOptions();  // Populate filter dropdowns only once
+            filtersInitialized = true;
+        }
+        
+        mcReasons = formatData(mcLogs1);
+        mcLogs1.sort().reverse();
+        clearAndRenderTables(mcLogs1);
+        
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        clearAndRenderTables([]); // Render empty tables on error
+    }
+}
 
         function clearAndRenderTables(data) {
             // Clear existing table headers and content
@@ -318,116 +319,126 @@
 
     // Update the applyFilters function
     async function applyFilters() {
-        const machineFilter = document.getElementById('machineFilter').value;
-        const reasonFilter = document.getElementById('reasonFilter').value;
-        
-        let dateFrom = document.getElementById('dateFrom').value;
-        let dateTo = document.getElementById('dateTo').value;
-        
-
+    const machineFilter = document.getElementById('machineFilter').value;
+    const reasonFilter = document.getElementById('reasonFilter').value;
+    
+    let dateFrom = document.getElementById('dateFrom').value;
+    let dateTo = document.getElementById('dateTo').value;
+    
+    try {
         // Handle date defaults
         if (dateFrom && !dateTo) {
-            // If only 'from' date is selected, set 'to' date to the current date and time with +6 hours
             let now = new Date();
-            now.setHours(now.getHours() + 6); // Add 6 hours
+            now.setHours(now.getHours() + 6);
             dateTo = now.toISOString().split('T');
-            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0];
 
-            // Adjust 'from' date to include +6 hours
             let fromDate = new Date(dateFrom + ":00");
             fromDate.setHours(fromDate.getHours() + 6);
             dateFrom = fromDate.toISOString().split('T');
-            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0];
 
             document.getElementById('dateTo').value = dateTo;
         } else if (!dateFrom && dateTo) {
-            // If only 'to' date is selected, set 'from' date to the first day of the current month with +6 hours
             let now = new Date();
             let firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            firstDayOfMonth.setHours(firstDayOfMonth.getHours() + 6); // Add 6 hours
+            firstDayOfMonth.setHours(firstDayOfMonth.getHours() + 6);
             dateFrom = firstDayOfMonth.toISOString().split('T');
-            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0];
 
-            // Adjust 'to' date to include +6 hours
             let toDate = new Date(dateTo + ":00");
             toDate.setHours(toDate.getHours() + 6);
             dateTo = toDate.toISOString().split('T');
-            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0];
 
             document.getElementById('dateFrom').value = dateFrom;
         } else if(dateFrom && dateTo) {
-            // Adjust both 'from' and 'to' dates to include +6 hours
             let fromDate = new Date(dateFrom + ":00");
             fromDate.setHours(fromDate.getHours() + 6);
             dateFrom = fromDate.toISOString().split('T');
-            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateFrom = dateFrom[0] + " " + dateFrom[1].split('.')[0];
 
             let toDate = new Date(dateTo + ":00");
             toDate.setHours(toDate.getHours() + 6);
             dateTo = toDate.toISOString().split('T');
-            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0]; // Format: YYYY-MM-DD HH:mm:ss
+            dateTo = dateTo[0] + " " + dateTo[1].split('.')[0];
         }
 
-
-        
-        console.log(dateFrom, dateTo)
-        let filteredData;
+        let filteredData = [];
         
         // Make API call if either date filter is set
         if (dateFrom || dateTo) {
-            queryData = {
-                        dateFrom: dateFrom,
-                        dateTo: dateTo ,
-                        mc_no: machineFilter ? machineFilter : null,
-                        
-                        
-                    }
-                console.log(queryData)
-            try {
-                const response = await fetch(`${api}/api/mc-log`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(queryData)
-                });
-                
-                const data = await response.json();
-                console.log(data)
-                if (data.success) {
-                    filteredData = data.result.complete.map(element => ({
-                        Machine: element.statuses[0].machine,
-                        Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
-                        Offtime: element.statuses[0].timestamp,
-                        Ontime: element.statuses[2].timestamp,
-                        Totaltime: element.timeTaken,
-                        ButtonDelay: element.btnDelay
-                    }));
-                } else {
-                    console.error('API call failed:', data.message);
-                    return;
-                }
-            } catch (error) {
-                console.error('Error fetching filtered data:', error);
+            const queryData = {
+                dateFrom: dateFrom,
+                dateTo: dateTo,
+                mc_no: machineFilter || null
+            };
+
+            const response = await fetch(`${api}/api/mc-log`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(queryData)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.success && data.result && data.result.complete && data.result.complete.length > 0) {
+                filteredData = data.result.complete.map(element => ({
+                    Machine: element.statuses[0].machine,
+                    Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
+                    Offtime: element.statuses[0].timestamp,
+                    Ontime: element.statuses[2].timestamp,
+                    Totaltime: element.timeTaken,
+                    ButtonDelay: element.btnDelay
+                }));
+            } else {
+                // Handle empty response
+                mcLogs1 = [];
+                mcReasons = {};
+                clearAndRenderTables([]);
                 return;
             }
         } else {
             // Use client-side filtering if no date filters are set
-            filteredData = originalMcLogs;
+            filteredData = [...originalMcLogs];
         }
 
         // Apply remaining filters client-side
-        filteredData = filteredData.filter(log => {
-            let matchesMachine = !machineFilter || log.Machine === machineFilter;
-            let matchesReason = !reasonFilter || log.Reason === reasonFilter;
-            console.log(log.Reason, reasonFilter)
-            return matchesMachine && matchesReason;
-        });
-        // console.log(filteredData)
+        if (filteredData.length > 0) {
+            filteredData = filteredData.filter(log => {
+                let matchesMachine = !machineFilter || log.Machine === machineFilter;
+                let matchesReason = !reasonFilter || log.Reason === reasonFilter;
+                return matchesMachine && matchesReason;
+            });
+        }
+
+        // Handle case where filters result in empty data
+        if (filteredData.length === 0) {
+            mcLogs1 = [];
+            mcReasons = {};
+            clearAndRenderTables([]);
+            return;
+        }
+
+        // Update global variables and render tables
         mcLogs1 = filteredData;
         mcReasons = formatData(filteredData);
         clearAndRenderTables(filteredData);
+
+    } catch (error) {
+        console.error('Error applying filters:', error);
+        // Handle error state
+        mcLogs1 = [];
+        mcReasons = {};
+        clearAndRenderTables([]);
     }
+}
 
     function resetFilters() {
         location.reload() 
@@ -453,92 +464,164 @@
         }
 
         // formating data for displaying Machine Wise NPT
-        const formatData = (data) => {
-            const mcReasons = {};
+        // const formatData = (data) => {
+        //     const mcReasons = {};
 
-            data.forEach((entry) => {
-                // console.log(data)
-                const { Machine, Reason, Totaltime } = entry;
+        //     data.forEach((entry) => {
+        //         // console.log(data)
+        //         const { Machine, Reason, Totaltime } = entry;
 
-                // Initialize the machine key if not present
-                if (!mcReasons[Machine]) {
-                mcReasons[Machine] = {};
-                }
+        //         // Initialize the machine key if not present
+        //         if (!mcReasons[Machine]) {
+        //         mcReasons[Machine] = {};
+        //         }
 
-                // Use the reason as the key, default to empty string if null or empty
-                const reason = Reason || "";
+        //         // Use the reason as the key, default to empty string if null or empty
+        //         const reason = Reason || "";
 
-                // Initialize the reason key if not present
-                if (!mcReasons[Machine][reason]) {
-                mcReasons[Machine][reason] = [];
-                }
+        //         // Initialize the reason key if not present
+        //         if (!mcReasons[Machine][reason]) {
+        //         mcReasons[Machine][reason] = [];
+        //         }
 
-                // Add the total time
-                mcReasons[Machine][reason].push({ Totaltime });
-            });
+        //         // Add the total time
+        //         mcReasons[Machine][reason].push({ Totaltime });
+        //     });
 
-            return mcReasons;
-        };
+        //     return mcReasons;
+        // };
 
-        // Render Machine Wise NPT Table
         function renderMachineWiseNPTTable() {
-            const table = document.getElementById("machineWiseNPTTable");
-            const thead = table.querySelector("thead tr");
-            const tbody = table.querySelector("tbody");
+    const table = document.getElementById("machineWiseNPTTable");
+    const thead = table.querySelector("thead tr");
+    const tbody = table.querySelector("tbody");
 
-            // Add reason headers
-            reasons.forEach(reason => {
-                const th = document.createElement("th");
-                th.textContent = reason.name;
-                thead.insertBefore(th, thead.children[thead.children.length - 2]);
-            });
+    // Add reason headers
+    reasons.forEach(reason => {
+        const th = document.createElement("th");
+        th.textContent = reason.name || "-";
+        thead.insertBefore(th, thead.children[thead.children.length - 2]);
+    });
 
-            // Add rows
-            let totalNPT = 0;
-            let sl = 1;
-            for (const [machine, data] of Object.entries(mcReasons)) {
-                const row = document.createElement("tr");
-                let total = 0;
+    if (!mcReasons || Object.keys(mcReasons).length === 0) {
+        const noDataRow = document.createElement("tr");
+        const noDataCell = document.createElement("td");
+        noDataCell.textContent = "No Data";
+        noDataCell.colSpan = thead.children.length;
+        noDataCell.style.textAlign = "center";
+        noDataCell.style.padding = "20px";
+        noDataRow.appendChild(noDataCell);
+        tbody.appendChild(noDataRow);
+        document.getElementById("totalNPTFooter").textContent = "Total NPT: 0 minutes";
+        return;
+    }
 
-                row.innerHTML = `<td>${sl++}</td><td>${machine}</td>`;
+    let totalNPT = 0;
+    let sl = 1;
+    for (const [machine, data] of Object.entries(mcReasons)) {
+        if (!machine || !data) continue; // Skip if machine or data is null/undefined
+        
+        const row = document.createElement("tr");
+        let total = 0;
 
-                reasons.forEach(reason => {
-                    const time = data[reason.name] ? data[reason.name].reduce((sum, item) => sum + item.Totaltime, 0) : 0;
-                    total += time;
-                    row.innerHTML += `<td>${time}</td>`;
-                });
+        row.innerHTML = `<td>${sl++}</td><td>${machine || "-"}</td>`;
 
-                const na = data["Unknown/Button not pressed"] ? data["Unknown/Button not pressed"].reduce((sum, item) => sum + item.Totaltime, 0) : 0;
-                total += na;
-                totalNPT += total;
-
-                row.innerHTML += `<td>${na > 0 ? na : ""}</td><td>${total}</td>`;
-                tbody.appendChild(row);
+        reasons.forEach(reason => {
+            let time = 0;
+            if (data[reason.name] && Array.isArray(data[reason.name])) {
+                time = data[reason.name].reduce((sum, item) => {
+                    return sum + (Number(item.Totaltime) || 0);
+                }, 0);
             }
+            total += time;
+            row.innerHTML += `<td>${time || "-"}</td>`;
+        });
 
-            // Update footer
-            document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT)}`;
+        // Handle Unknown/Button not pressed case
+        let na = 0;
+        if (data["Unknown/Button not pressed"] && Array.isArray(data["Unknown/Button not pressed"])) {
+            na = data["Unknown/Button not pressed"].reduce((sum, item) => {
+                return sum + (Number(item.Totaltime) || 0);
+            }, 0);
+        }
+        total += na;
+        totalNPT += total;
+
+        row.innerHTML += `<td>${na || "-"}</td><td>${total || "-"}</td>`;
+        tbody.appendChild(row);
+    }
+
+    document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT || 0)}`;
+}
+
+function renderMachineNPTLogTable(mcLogs) {
+    const table = document.getElementById("machineNPTLogTable");
+    const tbody = table.querySelector("tbody");
+
+    if (!Array.isArray(mcLogs) || mcLogs.length === 0) {
+        const noDataRow = document.createElement("tr");
+        const noDataCell = document.createElement("td");
+        noDataCell.textContent = "No Data";
+        noDataCell.colSpan = 6;
+        noDataCell.style.textAlign = "center";
+        noDataCell.style.padding = "20px";
+        noDataRow.appendChild(noDataCell);
+        tbody.appendChild(noDataRow);
+        return;
+    }
+
+    mcLogs.forEach((log, index) => {
+        // Validate all required fields exist
+        if (!log || typeof log !== 'object') return;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${log.Machine || "-"}</td>
+            <td>${log.Reason || "-"}</td>
+            <td>${log.Offtime || "-"}</td>
+            <td>${log.Ontime || "-"}</td>
+            <td>${log.Totaltime || "-"}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Update the data formatting function to handle null values
+const formatData = (data) => {
+    const mcReasons = {};
+
+    if (!Array.isArray(data)) return mcReasons;
+
+    data.forEach((entry) => {
+        if (!entry || typeof entry !== 'object' || !entry.Machine) return;
+        // console.log(entry)
+        const Machine = entry.Machine || "Unknown";
+        const Reason = entry.Reason || "Unknown/Button not pressed";
+        const Totaltime = Number(entry.Totaltime) || 0;
+
+        // Initialize the machine key if not present
+        if (!mcReasons[Machine]) {
+            mcReasons[Machine] = {};
         }
 
-        // Render Machine NPT Log Table
-        function renderMachineNPTLogTable(mcLogs) {
-            const table = document.getElementById("machineNPTLogTable");
-            const tbody = table.querySelector("tbody");
-
-            mcLogs.forEach((log, index) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${log.Machine}</td>
-                    <td>${log.Reason}</td>
-                    <td>${log.Offtime}</td>
-                    <td>${log.Ontime}</td>
-                    <td>${log.Totaltime}</td>
-                   
-                `;
-                tbody.appendChild(row);
-            });
+        // Initialize the reason key if not present
+        if (!mcReasons[Machine][Reason]) {
+            mcReasons[Machine][Reason] = [];
         }
+
+        // Add the total time
+        mcReasons[Machine][Reason].push({ Totaltime });
+    });
+
+    return mcReasons;
+};
+
+// Helper function to safely convert to number
+function safeNumber(value) {
+    const num = Number(value);
+    return isNaN(num) ? 0 : num;
+}
         // <td>${log.ButtonDelay}</td>
         // Initialize tables
         renderMachineWiseNPTTable();
