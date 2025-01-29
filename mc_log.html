@@ -192,7 +192,7 @@
             {name:"Yarn Breakage"},
             
         ]
-        const api =  "https://knit-mc-tracker-server.onrender.com"
+        const api =    "https://knit-mc-tracker-server.onrender.com"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
@@ -242,7 +242,7 @@
         }
         
         mcReasons = formatData(mcLogs1);
-        mcLogs1.sort().reverse();
+        mcLogs1.sort();
         clearAndRenderTables(mcLogs1);
         
     } catch (error) {
@@ -627,10 +627,10 @@ function safeNumber(value) {
         renderMachineWiseNPTTable();
        
 
-        // Refresh only the table content every 60 seconds
+        // Refresh only the table content every 30 seconds
         setInterval(() => {
             location.reload();
-        }, 600000);
+        }, 30000);
     </script>
 </body>
 </html>
