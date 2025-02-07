@@ -159,22 +159,25 @@
 
     <script>
             if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./service-worker.js").then(r=>{
-        console.log("Service worker registered")
-        console.log(r)
-    })
-    .catch(e =>{
-        console.log("Registration failed")
-        console.log(e)
-    })
-}
+                navigator.serviceWorker.register("./service-worker.js").then(r=>{
+                    console.log("Service worker registered")
+                    console.log(r)
+                })
+                .catch(e =>{
+                    console.log("Registration failed")
+                    console.log(e)
+                })
+            }   
+
+
+            let isFilterActive = false;
+            
     
-        // changing the color of the links based on the what page it is
-        document.addEventListener("DOMContentLoaded", () => {
-            localStorage.setItem("filter", "false")
+            // changing the color of the links based on the what page it is
+            document.addEventListener("DOMContentLoaded", () => {
             const links = document.querySelectorAll(".nav-link");
             const currentPage = window.location.pathname.split("/").pop().split(".")[0]; // Get current page filename
-            console.log(currentPage)
+            // console.log(currentPage)
             links.forEach(link => {
                 // console.log(link.getAttribute("href").split("/").pop().split(".")[0])
                 if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
@@ -185,7 +188,7 @@
         let mcLogs1 = []
         let mcReasons = {}
         let reasons = [
-            {name:"Maintence"},
+            {name:"Maintenance"},
             {name:"Needle Breakage"},
             {name:"No Order / No Program"},
             {name:"No Yarn"},
@@ -195,7 +198,7 @@
             {name:"Yarn Breakage"},
             
         ]
-        const api =    "https://knit-mc-tracker-server.onrender.com"
+        const api =   "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
@@ -204,14 +207,17 @@
         let filtersInitialized = false;  // Track if filters have been initialized
         let allMc = []
         function toggleFilters() {
+
             const filterPanel = document.getElementById('filterPanel');
             const toggleText = document.getElementById('toggleText');
             if (filterPanel.style.display === 'none' || !filterPanel.style.display) {
                 filterPanel.style.display = 'block';
                 toggleText.textContent = 'Hide Filters';
+                isFilterActive  = true
             } else {
                 filterPanel.style.display = 'none';
                 toggleText.textContent = 'Show Filters';
+                
             }
         }
         
@@ -290,7 +296,7 @@
             
             // Populate machine filter
 
-                console.log(originalMcLogs)
+                // console.log(originalMcLogs)
  
              
               
@@ -307,7 +313,7 @@
             
             const reasonFilter = document.getElementById('reasonFilter');
             reasons.forEach(reason => {
-                console.log(reason)
+                // console.log(reason)
                 const option = document.createElement('option');
                 option.value = reason.name;
                 option.textContent = reason.name;
@@ -322,12 +328,13 @@
 
     // Update the applyFilters function
     async function applyFilters() {
+    
     const machineFilter = document.getElementById('machineFilter').value;
     const reasonFilter = document.getElementById('reasonFilter').value;
     
     let dateFrom = document.getElementById('dateFrom').value;
     let dateTo = document.getElementById('dateTo').value;
-        localStorage.setItem("filter", "true")
+        
     try {
         // Handle date defaults
         if (dateFrom && !dateTo) {
@@ -445,28 +452,29 @@
 
     function resetFilters() {
         
-        localStorage.setItem("filter", "false")
-        location.reload() 
+        
+    // Clear all filter inputs
+        location.reload()
     }
 
 
-        
-        
-  
-        
-        // Utility function to format seconds into minutes to hours
+// Utility function to format seconds into shortened days, hours, minutes, and seconds
         function formatSeconds(seconds) {
-            const hours = Math.floor(seconds / 3600);
+            const days = Math.floor(seconds / 86400); // 86400 seconds in a day
+            const hours = Math.floor((seconds % 86400) / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
 
-            if (hours > 0 && minutes > 0) {
-                return `${hours} hours ${minutes} minutes`;
-            } else if (hours > 0) {
-                return `${hours} hours`;
-            } else {
-                return `${minutes} minutes`;
-            }
+            let result = [];
+            
+            if (days > 0) result.push(`${days}d`);
+            if (hours > 0) result.push(`${hours}h`);
+            if (minutes > 0) result.push(`${minutes}min`);
+            if (secs > 0) result.push(`${secs}sec`);
+
+            return result.join(' ');
         }
+
         function formatDateTime(timestamp) {
     if (!timestamp) return "-";
     const date = new Date(timestamp);
@@ -653,14 +661,8 @@ function safeNumber(value) {
         renderMachineWiseNPTTable();
        
 
-        // Refresh only the table content every 30 seconds
-        isfilterapplied = localStorage.getItem("filter")
-        if(isfilterapplied === "false"){
-                setInterval(() => {
-                location.reload();
-            }, 30000);
-        }
-        
+       
+                
     </script>
 </body>
 </html>
