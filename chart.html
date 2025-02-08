@@ -231,7 +231,7 @@
 
         // Configuration
         const CONFIG = {
-            api:  "https://knit-mc-tracker-server.onrender.com",
+            api: "https://knit-mc-tracker-server.onrender.com",
             refreshInterval: 30000, // 30 seconds
             charts: {
                 margin: { top: 20, right: 10, bottom: 20, left: 90 },
@@ -246,81 +246,22 @@
     }
         };
 
-//         function addTimeMarkers(svg, x, height) {
-//         const today = new Date();
-//         today.setHours(8, 0, 0, 0);
-//     // Start time marker (8 AM)
-//     svg.append('line')
-//         .attr('class', 'time-marker start-marker')
-//         .attr('x1', x(today))
-//         .attr('y1', 0)
-//         .attr('x2', x(today))
-//         .attr('y2', height)
-//         .style('stroke', 'green')
-//         .style('stroke-width', '2px')
-//         .style('stroke-dasharray', '5,5');
+        // Utility function to format seconds into shortened days, hours, minutes, and seconds
+        function formatSeconds(seconds) {
+            const days = Math.floor(seconds / 86400); // 86400 seconds in a day
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
 
-//     svg.append('text')
-//         .attr('class', 'time-label start-label')
-//         .attr('x', x(today))
-//         .attr('y', -5)
-//         .attr('text-anchor', 'middle')
-//         .style('fill', 'green')
-//         .style('font-size', '12px')
-//         .text('Start Time (8 AM)');
+            let result = [];
+            
+            if (days > 0) result.push(`${days}d`);
+            if (hours > 0) result.push(`${hours}h`);
+            if (minutes > 0) result.push(`${minutes}min`);
+            if (secs > 0) result.push(`${secs}sec`);
 
-//     // End time marker (8 PM)
-//     const endTime = new Date(today);
-//     const [hours, minutes] = CONFIG.timelines.endTime.split(':');
-//     endTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-//     svg.append('line')
-//         .attr('class', 'time-marker end-marker')
-//         .attr('x1', x(endTime))
-//         .attr('y1', 0)
-//         .attr('x2', x(endTime))
-//         .attr('y2', height)
-//         .style('stroke', 'red')
-//         .style('stroke-width', '2px')
-//         .style('stroke-dasharray', '5,5');
-
-//     svg.append('text')
-//         .attr('class', 'time-label end-label')
-//         .attr('x', x(endTime))
-//         .attr('y', -5)
-//         .attr('text-anchor', 'middle')
-//         .style('fill', 'red')
-//         .style('font-size', '12px')
-//         .text('End Time (8 PM)');
-// }
-
-        
-
-//         function addEndTimeMarker(svg, x, height) {
-//         const endTime = new Date();
-//         const [hours, minutes] = CONFIG.timelines.endTime.split(':');
-//         endTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-//         svg.append('line')
-//             .attr('class', 'end-time-marker')
-//             .attr('x1', x(endTime))
-//             .attr('y1', 0)
-//             .attr('x2', x(endTime))
-//             .attr('y2', height)
-//             .style('stroke', 'red')
-//             .style('stroke-width', '2px')
-//             .style('stroke-dasharray', '5,5');
-
-//         // Add label
-//         svg.append('text')
-//             .attr('class', 'end-time-label')
-//             .attr('x', x(endTime))
-//             .attr('y', -5)
-//             .attr('text-anchor', 'middle')
-//             .style('fill', 'red')
-//             .style('font-size', '12px')
-//             .text('End Time (8 PM)');
-//     }
+            return result.join(' ');
+        }
 
 
         
@@ -705,13 +646,25 @@
                 .attr("transform", d => `translate(0,${y(d.machine) + (y.bandwidth() - CONFIG.charts.barHeight) / 2})`);
 
             data.forEach((machine, machineIndex) => {
+                // const startOfToday = new Date();
+                // startOfToday.setHours(0, 0, 0, 0);
+                // const endOfToday = new Date();
+                // endOfToday.setHours(23, 59, 59, 999);
                 machineGroups
                     .filter(d => d.machine === machine.machine)
                     .selectAll("rect")
                     .data(machine.periods)
                     .join("rect")
-                    .attr("x", d => x(d.start))
-                    .attr("width", d => Math.max(0, x(d.end) - x(d.start)))
+                    .attr("x", d => {
+                         // ALWAYS use startOfToday if the period starts before today
+                        const barStart = d.start < today ? today : d.start;
+                        return x(barStart); // Correctly calculate x position
+                    })
+                    .attr("width", d => {
+                        const barStart = d.start < today ? today : d.start;
+                        const barEnd = d.end 
+                        return Math.max(0, x(barEnd) - x(barStart));
+                    })
                     .attr("height", CONFIG.charts.barHeight)
                     .attr("fill", d => {
                         if (d.status === "Machine On") return reasonColors("Machine On");
@@ -726,7 +679,7 @@
                             Status: ${d.status}<br/>
                             Start: ${formatDateTime(d.start)}<br/>
                             End: ${formatDateTime(d.end)}<br/>
-                            Duration: ${d.duration.toFixed(1)}s
+                            Duration: ${formatSeconds(d.duration.toFixed(1))}s
                         `;
                         if (d.status === "Machine Off") {
                             tooltipContent += `<br/>Reason: ${d.reason}`;
@@ -846,7 +799,7 @@ function updateCheckboxes(data, reasonData, machineData) {
                 const processedData = processFetchedData(data);
                 console.log(processedData)
                 let reasonwise_npt = [
-                    { reason: "Maintence", value: 0 },
+                    { reason: "Maintenance", value: 0 },
                     { reason: "Needle Breakage", value: 0 },
                     { reason: "No Order / No Program", value: 0 },
                     { reason: "No Yarn", value: 0 },
