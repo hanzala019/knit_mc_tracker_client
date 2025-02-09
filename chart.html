@@ -231,7 +231,7 @@
 
         // Configuration
         const CONFIG = {
-            api: "https://knit-mc-tracker-server.onrender.com",
+            api: "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com",
             refreshInterval: 30000, // 30 seconds
             charts: {
                 margin: { top: 20, right: 10, bottom: 20, left: 90 },
@@ -627,7 +627,7 @@
             const y = d3.scaleBand()
                 .domain(data.map(d => d.machine))
                 .range([0, height])
-                .padding(0.1);
+                .padding(0.2);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
