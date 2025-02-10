@@ -105,7 +105,10 @@
     <div class="container">
         <div class="col-sm-12">
             <div class="panel panel-default">
-                <div class="panel-heading">Machine Wise NPT (In Seconds)</div>
+                <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Machine Wise NPT (In Seconds)</span>
+                    <span id="runningTime"></span> <!-- Running time will be updated here -->
+                </div>
                 <div class="panel-body">
                     <div class="table-responsive size">
                         <table class="table table-striped table-hover table-bordered" id="machineWiseNPTTable">
@@ -156,6 +159,7 @@
             </div>
         </div>
     </div>
+    
 
     <script>
             if("serviceWorker" in navigator){
@@ -169,8 +173,13 @@
                 })
             }   
 
+            function runningTime(){
+                document.getElementById("runningTime").textContent = "Running Time: " + formatSeconds(getCurrentTimeInMilliSeconds());
+            }
+            setInterval(runningTime, 1000)
+            runningTime()
 
-            let isFilterActive = false;
+            
             
     
             // changing the color of the links based on the what page it is
@@ -188,17 +197,17 @@
         let mcLogs1 = []
         let mcReasons = {}
         let reasons = [
-            {name:"Maintenance"},
-            {name:"Needle Breakage"},
-            {name:"No Order / No Program"},
-            {name:"No Yarn"},
-            {name:"Power"},
-            {name:"Program Change"},
-            {name:"Roll Cutting"},
-            {name:"Yarn Breakage"},
+            {name:"Maintenance", count: 0},
+            {name:"Needle Breakage", count: 0},
+            {name:"No Order / No Program", count: 0},
+            {name:"No Yarn", count: 0},
+            {name:"Power", count: 0},
+            {name:"Program Change", count: 0},
+            {name:"Roll Cutting", count: 0},
+            {name:"Yarn Breakage", count: 0},
             
         ]
-        const api =  "https://knit-mc-tracker-server.onrender.com"
+        const api =  "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
@@ -227,6 +236,10 @@
         const data = await response.json();
         console.log(data)
         const arr = data.result?.complete || [];
+        const arr2 = data.result?.incomplete || [];
+        
+        console.log(arr)
+        
         mcLogs1 = []; // Clear existing logs
         
         allMc = data.machines || [];
@@ -238,9 +251,10 @@
                     Reason: (element.statuses[1].id ? element.statuses[1].reason_id : "Unknown/Button not pressed"),
                     Offtime: element.statuses[0].timestamp,
                     Ontime: element.statuses[2].timestamp,
-                    Totaltime: element.timeTaken,
-                    ButtonDelay: element.btnDelay
+                    Totaltime: element.timeTaken ? element.timeTaken : element.statuses[2].timestamp - element.statuses[0].timestamp,
+                    ButtonDelay: element.btnDelay ? element.btnDelay : 0
                 };
+                console.log(temp)
                 mcLogs1.push(temp);
             });
         }
@@ -384,7 +398,7 @@
                 dateTo: dateTo,
                 mc_no: machineFilter || null
             };
-
+            console.log(dateFrom, dateTo)
             const response = await fetch(`${api}/api/mc-log`, {
                 method: 'POST',
                 headers: {
@@ -476,7 +490,17 @@
             return result.join(' ');
         }
 
-        function formatDateTime(timestamp) {
+    function getCurrentTimeInMilliSeconds(){
+                    const now = Date.now(); // Current timestamp in milliseconds
+                    const startOfToday = new Date();
+                    startOfToday.setHours(0, 0, 0, 0); // Set to midnight (start of the day)
+
+                    const totalTimeToday = Math.floor((now - startOfToday.getTime()) / 1000);
+                  
+                    return totalTimeToday
+        }
+
+    function formatDateTime(timestamp) {
     if (!timestamp) return "-";
     const date = new Date(timestamp);
 
@@ -527,27 +551,33 @@
 
         //     return mcReasons;
         // };
-
         function renderMachineWiseNPTTable() {
     const table = document.getElementById("machineWiseNPTTable");
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
 
-    // Add reason headers
+    // Reset counts before calculating
+    reasons.forEach(reason => reason.count = 0);
+    let unknownCount = 0;
+    let totalCount = 0;
+
+    // Reset table headers
+    thead.innerHTML = `<th>#</th><th>Machine</th>`;
     reasons.forEach(reason => {
         const th = document.createElement("th");
-        th.textContent = reason.name || "-";
-        thead.insertBefore(th, thead.children[thead.children.length - 2]);
+        th.textContent = `${reason.name} (0)`;
+        th.dataset.reason = reason.name;  // Store reason name for easy updates
+        thead.appendChild(th);
     });
+
+    thead.innerHTML += `<th>N/A (0)</th><th>Total (0)</th>`; // Add N/A and Total
+
+    // Clear previous table rows
+    tbody.innerHTML = "";
 
     if (!mcReasons || Object.keys(mcReasons).length === 0) {
         const noDataRow = document.createElement("tr");
-        const noDataCell = document.createElement("td");
-        noDataCell.textContent = "No Data";
-        noDataCell.colSpan = thead.children.length;
-        noDataCell.style.textAlign = "center";
-        noDataCell.style.padding = "20px";
-        noDataRow.appendChild(noDataCell);
+        noDataRow.innerHTML = `<td colspan="${thead.children.length}" style="text-align:center; padding:20px;">No Data</td>`;
         tbody.appendChild(noDataRow);
         document.getElementById("totalNPTFooter").textContent = "Total NPT: 0 minutes";
         return;
@@ -555,41 +585,64 @@
 
     let totalNPT = 0;
     let sl = 1;
+
+    // Loop through each machine
     for (const [machine, data] of Object.entries(mcReasons)) {
-        if (!machine || !data) continue; // Skip if machine or data is null/undefined
-        
+        if (!machine || !data) continue; // Skip invalid data
+
         const row = document.createElement("tr");
-        let total = 0;
+        let totalMachineTime = 0;
+        let machineTotalCount = 0;  // Count occurrences for this machine
 
         row.innerHTML = `<td>${sl++}</td><td>${machine || "-"}</td>`;
 
+        // Calculate time and update reason counts
         reasons.forEach(reason => {
             let time = 0;
             if (data[reason.name] && Array.isArray(data[reason.name])) {
-                time = data[reason.name].reduce((sum, item) => {
-                    return sum + (Number(item.Totaltime) || 0);
-                }, 0);
+                time = data[reason.name].reduce((sum, item) => sum + (Number(item.Totaltime) || 0), 0);
+                let count = data[reason.name].length;
+                reason.count += count; // Update total count for this reason
+                machineTotalCount += count; // Count per machine
             }
-            total += time;
+            totalMachineTime += time;
             row.innerHTML += `<td>${time || "-"}</td>`;
         });
 
-        // Handle Unknown/Button not pressed case
+        // Handle N/A (Unknown/Button not pressed)
         let na = 0;
         if (data["Unknown/Button not pressed"] && Array.isArray(data["Unknown/Button not pressed"])) {
-            na = data["Unknown/Button not pressed"].reduce((sum, item) => {
-                return sum + (Number(item.Totaltime) || 0);
-            }, 0);
+            na = data["Unknown/Button not pressed"].reduce((sum, item) => sum + (Number(item.Totaltime) || 0), 0);
+            let naCount = data["Unknown/Button not pressed"].length;
+            unknownCount += naCount;
+            machineTotalCount += naCount;
         }
-        total += na;
-        totalNPT += total;
+        totalMachineTime += na;
+        totalNPT += totalMachineTime;
+        totalCount += machineTotalCount; // Update total count
 
-        row.innerHTML += `<td>${na || "-"}</td><td>${total || "-"}</td>`;
+        row.innerHTML += `<td>${na || "-"}</td><td>${totalMachineTime || "-"}</td>`;
         tbody.appendChild(row);
     }
 
-    document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT || 0)}`;
+    // Update reason counts in headers
+    reasons.forEach(reason => {
+        const th = thead.querySelector(`th[data-reason="${reason.name}"]`);
+        if (th) th.textContent = `${reason.name} (${reason.count})`;
+    });
+
+    // Update N/A count
+    const naTh = thead.querySelector("th:nth-last-child(2)"); // Second last column (N/A)
+    if (naTh) naTh.textContent = `N/A (${unknownCount})`;
+
+    // Update total count in the header
+    const totalTh = thead.querySelector("th:last-child"); // Last column (Total)
+    if (totalTh) totalTh.textContent = `Total (${totalCount})`;
+    const percentageNPT = ((totalNPT/getCurrentTimeInMilliSeconds())*100).toFixed(1)
+    // Update total NPT footer
+    document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT || 0) + " (" + percentageNPT + "%)"}`;
 }
+
 
 function renderMachineNPTLogTable(mcLogs) {
     const table = document.getElementById("machineNPTLogTable");
