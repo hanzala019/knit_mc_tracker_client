@@ -735,8 +735,11 @@
                             End: ${formatDateTime(d.end)}<br/>
                             Duration: ${formatSeconds(d.duration.toFixed(1))}s <br/>
                             ${d.actualDuration != d.duration ? "Total Duration: " + formatSeconds(d.actualDuration.toFixed(1)) + "<br/>" : ""}`;
-                        if (d.status === "Machine Off") {
+                        if (d.status === "Machine Off" && d.actualDuration != d.duration ) {
                             tooltipContent += `Reason: ${d.reason}`;
+                        }
+                        else{
+                            tooltipContent += `<br/> Reason: ${d.reason}`;
                         }
                         createTooltip(tooltipContent, event);
                     })
