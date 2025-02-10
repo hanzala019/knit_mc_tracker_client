@@ -183,3 +183,9 @@
         font-size: 10px;
     }
 }
+
+@media (max-width: 520px) {
+    .panel-heading {
+        font-size: 12px
+    }
+}
