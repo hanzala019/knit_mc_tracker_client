@@ -734,9 +734,9 @@
                             Start: ${d.start === d.actualStartTime ? formatDateTime(d.start) : formatDateTime(d.actualStartTime) }<br/>
                             End: ${formatDateTime(d.end)}<br/>
                             Duration: ${formatSeconds(d.duration.toFixed(1))}s <br/>
-                            ${d.actualDuration != d.duration ? "Total Duration: " + formatSeconds(d.actualDuration.toFixed(1)) : ""}`;
+                            ${d.actualDuration != d.duration ? "Total Duration: " + formatSeconds(d.actualDuration.toFixed(1)) + "<br/>" : ""}`;
                         if (d.status === "Machine Off") {
-                            tooltipContent += `<br/>Reason: ${d.reason}`;
+                            tooltipContent += `Reason: ${d.reason}`;
                         }
                         createTooltip(tooltipContent, event);
                     })
