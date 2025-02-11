@@ -642,7 +642,7 @@
             "Future"
         ])
         .range([
-            "#22aa11",
+            "#0040ff",
             "#FFA999",
             "#99cF99",
             "#FFdC99",
@@ -759,8 +759,39 @@
                 .call(xAxis);
 
             svg.append("g")
-                .attr("class", "axis")
-                .call(yAxis);
+    .attr("class", "axis")
+    .call(yAxis)
+    .selectAll(".tick line")  // Target the tick lines specifically
+    .style("stroke", machineName => {
+        // Find the last period for this machine
+        const machineData = filteredData.find(d => d.machine === machineName);
+        const lastPeriod = machineData.periods[machineData.periods.length - 2];
+        
+        let color = 'black'; // Default color
+        
+        if (lastPeriod.status === "Machine On") {    
+            color = '#22aa11'; // Green for running
+        } else if (lastPeriod.status === "Machine Off") {
+            // Use color based on the reason for stoppage
+            const reasonColors = {
+                "Maintenance": "#0040ff",
+                "Needle Breakage": "#FFA999",
+                "No Order / No Program": "#99cF99",
+                "No Yarn": "#FFdC99",
+                "Power": "#11EEEE",
+                "Program Change": "#cCFF",
+                "Roll Cutting": "#FFFFAA",
+                "Yarn Breakage": "#FF22FF",
+                "N/A": "#ff1a1a",
+                "No operation data": "#FFAACC"
+            };
+            color = reasonColors[lastPeriod.reason] || '#ff1a1a'; // Red if no matching reason
+        }
+        
+        return color;
+    })
+    .attr("stroke-width", 2)  // Make the line a bit thicker
+    .attr("opacity", 0.7);    // Add some transparency
 
             svg.append("text")
                 .attr("x", width / 2)
