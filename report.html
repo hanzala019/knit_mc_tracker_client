@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Analytics Dashboard</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script> <!-- Added autotable plugin explicitly -->
+    <link href="styles/style.css" rel="stylesheet">
+    <style>
+        /* General styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            /* background-color: #f8f9fa; */
+        }
+
+        .container-fluid {
+            max-width: 1000px;
+            /* Added max-width */
+        }
+
+        .stat-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Styles for checkbox lists */
+        .machine-checkbox { /* Removed reason-checkbox */
+            margin: 0.5rem;
+        }
+
+        /* Styles for navigation tabs */
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+        }
+
+        /* Table styles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .download-button {
+            margin-bottom: 0.5rem;
+            margin-right: 0.5rem; /* Added spacing between buttons */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .col-md-3 {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .col-md-3 {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <!-- <div class="logo">LOGO</div> -->
+        <div class="nav-links" >
+            <a href="./mc_log.html" class="nav-link">Machine Logs</a>
+            <a href="./chart.html" class="nav-link">Machine Chart</a>
+            <a href="./report.html" class="nav-link">Report</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
+        </div>
+        <!-- <div class="user-section">
+            <div class="user-info">
+                <div class="avatar" id="avatar">A</div>
+            </div>
+            <div class="logout-section">
+                <button class="logout-button">Logout</button>
+            </div>
+        </div> -->
+    </nav>
+    <div class="container-fluid py-4">
+
+        <!-- Toggle Filter Button -->
+        <div class="row mb-2">
+            <div class="col-12 text-end">
+                <button class="btn btn-outline-secondary btn-sm" id="toggleFilters">Hide Filters</button>
+            </div>
+        </div>
+
+        <!-- Machine Selection - Reason Selection Removed -->
+        <div class="row mb-4" id="machineSelectionRow">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Machine Selection</h5>  <!-- Changed Header Text -->
+                    </div>
+                    <div class="card-body" id="machineCheckboxes">
+                        <div class="loading"></div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllToggle">
+                            <label class="form-check-label" for="selectAllToggle">
+                                Select All Machines
+                            </label>
+                        </div>
+                        <!-- Added Real Time calculation option -->
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="realTimeToggle">
+                            <label class="form-check-label" for="realTimeToggle">
+                                Real Time Calculation
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">Overview</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="machine-analysis-tab" data-bs-toggle="tab" href="#machineAnalysis"
+                    role="tab">Machine Analysis</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="reason-analysis-tab" data-bs-toggle="tab" href="#reasonAnalysis"
+                    role="tab">Reason Analysis</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="analyticsTabContent">
+
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalDowntime">-</div>
+                            <div class="stat-label">Total Downtime (minutes)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="avgDowntime">-</div>
+                            <div class="stat-label">Average Downtime per Event</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="totalEvents">-</div>
+                            <div class="stat-label">Total Stop Events</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="stat-card">
+                            <div class="stat-value" id="uptimePercentage">-</div>
+                            <div class="stat-label" id="real-time-uptime">Uptime Percentage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Table Row -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Machine Performance Overview</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('overviewMachineTableBody', 'overview_machine_performance.csv', 'csv')">Download as CSV</button>
+                                    <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('overviewMachineTableBody', 'overview_machine_performance.pdf', 'pdf')">Download as PDF</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Machine Num</th>
+                                                <th>Most Downtime Reason</th>
+                                                <th>Event Num</th>
+                                                <th>Avg Downtime</th>
+                                                <th>Total Downtime</th>
+                                                <th>NPT (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="overviewMachineTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machine Analysis Tab -->
+            <div class="tab-pane fade" id="machineAnalysis" role="tabpanel">
+                <div class="row" id="machineAnalysisTables">
+                    <!-- Machine specific tables will be added here -->
+                    <div class="col-12 mb-2">
+                        <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('csv')">Download All as CSV</button>
+                        <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('pdf')">Download All as PDF</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reason Analysis Tab -->
+            <div class="tab-pane fade" id="reasonAnalysis" role="tabpanel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Downtime Reasons Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('reasonComparisonTableBody', 'downtime_reason_analysis.csv', 'csv')">Download as CSV</button>
+                                    <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('reasonComparisonTableBody', 'downtime_reason_analysis.pdf', 'pdf')">Download as PDF</button>
+                                </div>
+                                <div class="table-responsive mb-4">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Reason</th>
+                                                <th>Downtime (min)</th>
+                                                <th>Average Downtime (min)</th>
+                                                <th>Events</th>
+                                                <th>Occurrences/hr</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reasonComparisonTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+                // Initialize navigation
+                document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav-link");
+            const currentPage = window.location.pathname.split("/").pop().split(".")[0];
+            links.forEach(link => {
+                if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
+                    link.classList.add("active");
+                }
+            });
+        });
+        // --- Global Variables ---
+        let data = {
+            machines: [],
+            result: []
+        };
+        const api = "https://knit-mc-tracker-server.onrender.com"
+        let filtersVisible = true;
+        const machineColors = {};
+        const defaultColors = [
+            '#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f',
+            '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'
+        ];
+        let useRealTimeCalculation = false; // Added flag for real-time calculation
+        let analysis = {}; // Global variable to store analysis results
+
+        // --- Utility Functions ---
+        const handleError = (error, message = 'An error occurred') => {
+            console.error(error);
+            // alert(`${message}: ${error.message}`); // Simple alert for error display
+        };
+
+        // Utility function to format seconds into shortened days, hours, minutes, and seconds
+        function formatSeconds(seconds) {
+            const days = Math.floor(seconds / 86400); // 86400 seconds in a day
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+
+            let result = [];
+
+            if (days > 0) result.push(`${days}d`);
+            if (hours > 0) result.push(`${hours}h`);
+            if (minutes > 0) result.push(`${minutes}min`);
+            if (secs > 0) result.push(`${secs}sec`);
+
+            return result.join(' ');
+        }
+
+        // --- Data Fetching ---
+        async function fetchData() {
+            try {
+                const response = await fetch(`${api}/api/mc-report`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                // console.log(rawData)
+                // if (!rawData || !Array.isArray(rawData)) {
+                //     throw new Error('API returned invalid data format');
+                // }
+
+                let reasonwise_npt = [
+                    { reason: "Maintenance", value: 0, count: 0 },
+                    { reason: "Needle Breakage", value: 0, count: 0 },
+                    { reason: "No Order / No Program", value: 0, count: 0 },
+                    { reason: "No Yarn", value: 0, count: 0 },
+                    { reason: "Power", value: 0, count: 0 },
+                    { reason: "Program Change", value: 0, count: 0 },
+                    { reason: "Roll Cutting", value: 0, count: 0 },
+                    { reason: "Yarn Breakage", value: 0, count: 0 },
+                    { reason: "N/A", value: 0, count: 0 },
+                    { reason: "No operation data", value: 0, count: 0 }
+                ];
+                data.result.forEach(element => {
+                    for(i =0; i< reasonwise_npt.length; i++){
+                        if(element[6] === reasonwise_npt[i].reason){
+                            reasonwise_npt[i].value += element[4];
+                            reasonwise_npt[i].count++;
+                            break;
+                        }
+                        else if(element[6] === null){
+                            reasonwise_npt[8].value += element[4];
+                            reasonwise_npt[8].count++;
+                            break
+                        }
+                    }
+
+                })
+                console.log(reasonwise_npt)
+                const machineData = []
+                data.machines.forEach(element => {
+                    // console.log(element)
+                    machineData.push(
+                        {machine: element, result: data.result.filter(item=> item[1]==element)}
+                    )
+                });
+                // console.log(machineData)
+
+                return machineData;
+            } catch (error) {
+                handleError(error, 'Failed to fetch data');
+                return null;
+            }
+        }
+
+        // --- Initialization ---
+        async function initializePage() {
+            try {
+                const machineData = await fetchData();
+                if (machineData && Array.isArray(machineData)) {
+                    console.log("Processed machine data:", machineData);
+
+                    // Initialize checkboxes
+                    initializeMachineReasonCheckboxes(machineData);
+
+                    // Setup event listeners
+                    initializeEventListeners(machineData);
+
+                    // Store machineData in global scope for later use
+                    window.cachedMachineData = machineData;
+
+                    // Run initial analysis
+                    analyzeData(machineData);
+                } else {
+                    console.error("Invalid machine data format", machineData);
+                    document.getElementById('machineCheckboxes').innerHTML =
+                        '<div class="alert alert-danger">Failed to load machine data. Please check the API endpoint.</div>';
+                }
+            } catch (error) {
+                handleError(error, 'Failed to initialize dashboard');
+                document.getElementById('machineCheckboxes').innerHTML =
+                    `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            }
+        }
+
+        // --- Event Listeners ---
+        function initializeEventListeners() {
+            // Machine Checkbox Select All Toggle
+            const selectAllToggle = document.getElementById('selectAllToggle');
+            if (selectAllToggle) {
+                selectAllToggle.addEventListener('change', () => {
+                    updateSelection('machine', selectAllToggle.checked);
+                });
+            }
+
+            // Real Time Calculation Toggle
+            const realTimeToggle = document.getElementById('realTimeToggle');
+            if (realTimeToggle) {
+                realTimeToggle.addEventListener('change', () => {
+                    useRealTimeCalculation = realTimeToggle.checked;
+                    analyzeData(); // Re-analyze data with new calculation mode
+                });
+            }
+
+            // Toggle Filters Event Listener
+            const toggleFiltersButton = document.getElementById('toggleFilters');
+            if (toggleFiltersButton) {
+                toggleFiltersButton.addEventListener('click', toggleFilters);
+            }
+
+            // Tab Activation Event Listeners
+            const tabElements = document.querySelectorAll('#analyticsTabs a');
+            tabElements.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Use Bootstrap's built-in methods to handle tab activation
+                    const tabId = e.target.getAttribute('href');
+                    const tabInstance = new bootstrap.Tab(e.target);
+                    tabInstance.show();
+                    analyzeData(); // Re-analyze data when switching tabs to ensure correct display
+                });
+            });
+
+            // Resize Event Listener with debounce
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    analyzeData(); // Reanalyze on resize to update visualizations
+                }, 250); // 250ms debounce
+            });
+        }
+
+        // --- Utility Functions for Checkbox Selection ---
+        function updateSelection(type, checked) {
+            const checkboxes = document.querySelectorAll(`.${type}-checkbox input[type="checkbox"]`);
+            checkboxes.forEach(checkbox => checkbox.checked = checked);
+            analyzeData();
+        }
+
+        // --- Toggle Filters Visibility ---
+        function toggleFilters() {
+            const machineSelectionRow = document.getElementById('machineSelectionRow');
+            const toggleFiltersButton = document.getElementById('toggleFilters');
+            filtersVisible = !filtersVisible;
+
+            machineSelectionRow.style.display = filtersVisible ? 'flex' : 'none';
+            toggleFiltersButton.textContent = filtersVisible ? 'Hide Filters' : 'Show Filters';
+        }
+
+        // --- Initialize Machine Checkboxes - Reason Removed ---
+        function initializeMachineReasonCheckboxes(machineData) {
+            const container = document.getElementById('machineCheckboxes');
+            container.innerHTML = '';
+
+            if (!Array.isArray(machineData) || machineData.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">No machine data available</div>';
+                return;
+            }
+
+            // --- Machine Checkboxes ---
+            const machineDiv = document.createElement('div');
+            machineDiv.className = 'mb-3';
+            machineDiv.innerHTML = '<h5>Machines:</h5>';
+            const machineRow = document.createElement('div');
+            machineRow.className = 'row g-2';
+
+            machineData.forEach((machineItem, index) => {
+                const machine = machineItem.machine;
+
+                const col = document.createElement('div');
+                col.className = 'col-md-3 col-sm-4 col-6';
+
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'form-check machine-checkbox';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'form-check-input';
+                input.id = `machine-${machine}`;
+                input.value = machine;
+                input.checked = true;
+                input.addEventListener('change', () => analyzeData());
+
+                const label = document.createElement('label');
+                label.className = 'form-check-label';
+                label.htmlFor = `machine-${machine}`;
+                label.textContent = machine;
+
+                checkboxDiv.appendChild(input);
+                checkboxDiv.appendChild(label);
+                col.appendChild(checkboxDiv);
+                machineRow.appendChild(col);
+
+                // Assign colors for consistent visualization
+                machineColors[machine] = defaultColors[index % defaultColors.length];
+            });
+            machineDiv.appendChild(machineRow);
+            container.appendChild(machineDiv);
+        }
+
+        // --- Data Analysis ---
+        function analyzeData(machineData) {
+            try {
+                if (!machineData) {
+                    machineData = window.cachedMachineData; // Try to use cached data if available
+                    if (!machineData) {
+                        console.error("No machine data available for analysis");
+                        return;
+                    }
+                } else {
+                    window.cachedMachineData = machineData; // Cache data for later use
+                }
+
+                const selectedMachines = getSelectedCheckboxes('machine');
+                analysis = analyzeEvents(selectedMachines, machineData); // Store analysis result globally
+
+                updateOverviewTab(analysis);
+                updateMachineAnalysisTab(analysis);
+                updateReasonAnalysisTab(analysis);
+            } catch (error) {
+                handleError(error, 'Failed to analyze data');
+            }
+        }
+
+        // --- Get Selected Checkboxes ---
+        function getSelectedCheckboxes(type) {
+            const checkboxes = document.querySelectorAll(`.${type}-checkbox input:checked`);
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
+        }
+
+        function analyzeEvents(selectedMachines, machineData) {
+            console.log("Data received in analyzeEvents:", machineData);
+
+            const analysis = {
+                machines: {},
+                reasons: {},
+                totalDowntime: 0,
+                totalEvents: 0,
+                uptime: 0,
+                hourlyDowntime: {},
+                firstEventTime: Infinity,
+                lastEventTime: 0
+            };
+
+            let totalRuntime = 0;
+
+            // Initialize machine-specific analysis structures
+            selectedMachines.forEach(machine => {
+                analysis.machines[machine] = {
+                    downtime: 0,
+                    events: 0,
+                    reasonEventsCount: {},
+                    reasonTotalDowntime: {},
+                };
+                analysis.hourlyDowntime[machine] = Array(24).fill(0);
+            });
+
+            // Initialize reason analysis structure
+            let reasonwise_npt = [
+                { reason: "Maintenance", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "Needle Breakage", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "No Order / No Program", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "No Yarn", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "Power", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "Program Change", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "Roll Cutting", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "Yarn Breakage", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "N/A", value: 0, count: 0, hourlyEvents: Array(24).fill(0) },
+                { reason: "No operation data", value: 0, count: 0, hourlyEvents: Array(24).fill(0) }
+            ];
+
+            if (!machineData || !Array.isArray(machineData)) {
+                console.warn("No valid machine data to analyze");
+                return analysis;
+            }
+
+            // Process each machine's data
+            machineData.forEach(machineItem => {
+                // Skip if machine is not in selected machines
+                if (!selectedMachines.includes(machineItem.machine)) return;
+
+                const machine = machineItem.machine;
+                const machineResults = machineItem.result;
+
+                if (!Array.isArray(machineResults) || machineResults.length === 0) return;
+
+                // Update first/last event times for this machine
+                if (machineResults.length > 0) {
+                    // Find earliest and latest timestamps for this machine
+                    machineResults.forEach(event => {
+                        if (event[2]) { // Start timestamp
+                            const startTime = new Date(event[2]).getTime();
+                            if (startTime < analysis.firstEventTime) {
+                                analysis.firstEventTime = startTime;
+                            }
+                        }
+                        if (event[3]) { // End timestamp
+                            const endTime = new Date(event[3]).getTime();
+                            if (endTime > analysis.lastEventTime) {
+                                analysis.lastEventTime = endTime;
+                            }
+                        }
+                    });
+                }
+
+                // Process each event for this machine
+                machineResults.forEach(event => {
+                    analysis.totalEvents++;
+                    analysis.machines[machine].events++;
+
+                    // Process event duration (assuming at index 4)
+                    if (event[4]) {
+                        const downtimeSeconds = event[4];
+                        const downtimeMinutes = downtimeSeconds / 60;
+
+                        // Update totals
+                        analysis.totalDowntime += downtimeMinutes;
+                        analysis.machines[machine].downtime += downtimeMinutes;
+
+                        // Update hourly downtime stats
+                        const offDate = new Date(event[2]); // Use timestamp at index 2 for hour
+                        const hourOfDay = offDate.getHours();
+                        analysis.hourlyDowntime[machine][hourOfDay] += downtimeMinutes;
+
+                        // Process reason data (assuming at index 6)
+                        const reason = event[6] || "N/A";
+                        let reasonData = reasonwise_npt.find(r => r.reason === reason);
+                        if (reasonData) {
+                            reasonData.count++;
+                            reasonData.value += downtimeMinutes;
+                            reasonData.hourlyEvents[hourOfDay]++;
+                        }
+
+                        // Update reason counts and downtime per machine
+                        analysis.machines[machine].reasonEventsCount[reason] =
+                            (analysis.machines[machine].reasonEventsCount[reason] || 0) + 1;
+                        analysis.machines[machine].reasonTotalDowntime[reason] =
+                            (analysis.machines[machine].reasonTotalDowntime[reason] || 0) + downtimeMinutes;
+                    }
+                });
+            });
+
+            // Calculate total runtime and elapsed hours based on real-time or fixed time
+            let totalHours = 24; // Default is 24 hours
+
+            if (useRealTimeCalculation && analysis.firstEventTime < Infinity && analysis.lastEventTime > 0) {
+                const elapsedMilliseconds = analysis.lastEventTime - analysis.firstEventTime;
+                const elapsedHours = elapsedMilliseconds / (1000 * 60 * 60);
+                totalHours = elapsedHours;
+                totalRuntime = elapsedHours * 60; // Convert hours to minutes
+            } else {
+                totalRuntime = 24 * 60; // 24 hours in minutes
+            }
+
+            analysis.totalHours = totalHours;
+
+            // Calculate uptime percentage
+            let totalPossibleUptime = totalRuntime * selectedMachines.length;
+            let selectedMachinesDowntime = 0;
+            selectedMachines.forEach(machine => {
+                if (analysis.machines[machine]) {
+                    selectedMachinesDowntime += analysis.machines[machine].downtime;
+                }
+            });
+
+            analysis.uptime = totalPossibleUptime - selectedMachinesDowntime;
+            analysis.avgDowntime = analysis.totalEvents > 0 ? (analysis.totalDowntime / analysis.totalEvents).toFixed(2) : 0;
+            analysis.reasonwise_npt = reasonwise_npt;
+
+            return analysis;
+        }
+
+
+        // --- Update UI Functions ---
+
+        // Update Overview Tab
+        function updateOverviewTab(analysis) {
+            const totalDowntimeElement = document.getElementById('totalDowntime');
+            const avgDowntimeElement = document.getElementById('avgDowntime');
+            const totalEventsElement = document.getElementById('totalEvents');
+            const uptimePercentageElement = document.getElementById('uptimePercentage');
+            // const realTimeUptimeElement = document.getElementById("real-time-uptime").value+= " " +
+
+            totalDowntimeElement.textContent = formatSeconds(analysis.totalDowntime * 60);
+            totalEventsElement.textContent = analysis.totalEvents;
+            avgDowntimeElement.textContent = formatSeconds(analysis.avgDowntime * 60);
+            uptimePercentageElement.textContent = (analysis.uptime > 0 ? ((analysis.uptime / (analysis.totalDowntime + analysis.uptime)) * 100).toFixed(2) : 0) + "%" ;
+
+            updateOverviewTable(analysis);
+        }
+
+        function updateOverviewTable(analysis) {
+            const overviewMachineTableBody = d3.select("#overviewMachineTableBody");
+            overviewMachineTableBody.selectAll("*").remove();
+
+            const machineLabels = Object.keys(analysis.machines);
+            const tableData = machineLabels.map(machine => {
+                const machineAnalysis = analysis.machines[machine];
+                const mostDowntimeReason = findMostFrequentReason(machineAnalysis.reasonEventsCount) || 'N/A';
+                const totalDowntimeMinutes = machineAnalysis.downtime;
+
+                // Calculate NPT percentage based on real-time or fixed 24h
+                const totalTimeMinutes = useRealTimeCalculation ? (analysis.totalHours * 60) : (24 * 60);
+                const nptPercentage = ((totalDowntimeMinutes / totalTimeMinutes) * 100).toFixed(2);
+
+                return {
+                    machineNum: machine,
+                    mostDowntimeReason: mostDowntimeReason,
+                    eventNum: machineAnalysis.events,
+                    avgDowntime: formatSeconds((analysis.totalEvents > 0 ? (machineAnalysis.downtime / machineAnalysis.events) * 60 : 0) ), // Avg downtime for each machine event
+                    totalDowntime: formatSeconds(totalDowntimeMinutes * 60),
+                    nptPercentage: nptPercentage + "%"
+                };
+            });
+
+            const rows = overviewMachineTableBody.selectAll("tr")
+                .data(tableData)
+                .enter()
+                .append("tr");
+
+            rows.append("td").text(d => d.machineNum);
+            rows.append("td").text(d => d.mostDowntimeReason);
+            rows.append("td").text(d => d.eventNum);
+            rows.append("td").text(d => d.avgDowntime);
+            rows.append("td").text(d => d.totalDowntime);
+            rows.append("td").text(d => d.nptPercentage);
+        }
+
+        function findMostFrequentReason(reasonCounts) {
+            let mostFrequentReason = null;
+            let maxCount = 0;
+            for (const reason in reasonCounts) {
+                if (reasonCounts[reason] > maxCount) {
+                    maxCount = reasonCounts[reason];
+                    mostFrequentReason = reason;
+                }
+            }
+            return mostFrequentReason;
+        }
+
+        function updateMachineAnalysisTab(analysis) {
+            updateMachineAnalysisTables(analysis);
+        }
+
+        function updateMachineAnalysisTables(analysis) {
+            const machineAnalysisTablesContainer = document.getElementById('machineAnalysisTables');
+            machineAnalysisTablesContainer.innerHTML = ''; // Clear existing tables
+
+            const machineLabels = Object.keys(analysis.machines);
+            let allReasons = [ "Maintenance", "Needle Breakage", "No Order / No Program", "No Yarn", "Power", "Program Change", "Roll Cutting", "Yarn Breakage", "N/A", "No operation data" ]; // Static list of reasons
+
+            // Download All Button Container
+            const downloadAllButtonDiv = document.createElement('div');
+            downloadAllButtonDiv.className = 'col-12 mb-2';
+            downloadAllButtonDiv.innerHTML = `
+                <div class="download-all-buttons">
+                    <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('csv')">Download All as CSV</button>
+                    <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('pdf')">Download All as PDF</button>
+                </div>
+            `;
+            machineAnalysisTablesContainer.appendChild(downloadAllButtonDiv);
+
+
+            machineLabels.forEach(machine => {
+                const machineData = analysis.machines[machine];
+
+                const card = document.createElement('div');
+                card.className = 'col-md-12 mb-4'; // Make each table take full width
+                card.innerHTML = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Machine ${machine} Analysis</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('machine-${machine}-reason-body', 'machine_${machine}_analysis.csv', 'csv')">Download as CSV</button>
+                                <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('machine-${machine}-reason-body', 'machine_${machine}_analysis.pdf', 'pdf')">Download as PDF</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Reason</th>
+                                            <th>Events</th>
+                                            <th>Avg Downtime</th>
+                                            <th>Total Downtime</th>
+                                            <th>NPT (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="machine-${machine}-reason-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                machineAnalysisTablesContainer.appendChild(card);
+                const tableBody = d3.select(`#machine-${machine}-reason-body`);
+                const tableRows = tableBody.selectAll('tr')
+                    .data(allReasons)
+                    .enter()
+                    .append('tr');
+
+                tableRows.each(function(reason) {
+                    const reasonDowntime = machineData.reasonTotalDowntime[reason] || 0;
+                    const reasonEvents = machineData.reasonEventsCount[reason] || 0;
+                    const avgReasonDowntime = reasonEvents > 0 ? (reasonDowntime / reasonEvents) : 0;
+                    const nptReasonPercentage = ((reasonDowntime / (analysis.totalHours * 60)) * 100).toFixed(2); // Use analysis.totalHours for real-time calculation
+
+                    d3.select(this).append('td').text(reason);
+                    d3.select(this).append('td').text(reasonEvents);
+                    d3.select(this).append('td').text(formatSeconds(avgReasonDowntime * 60));
+                    d3.select(this).append('td').text(formatSeconds(reasonDowntime * 60));
+                    d3.select(this).append('td').text(nptReasonPercentage + "%");
+                });
+
+
+            });
+        }
+
+
+        function updateReasonAnalysisTab(analysis) {
+            updateReasonComparisonTable(analysis);
+        }
+
+        function updateReasonComparisonTable(analysis) {
+            const reasonComparisonTableBody = d3.select("#reasonComparisonTableBody");
+            reasonComparisonTableBody.selectAll("*").remove();
+
+            let reasonwise_npt = analysis.reasonwise_npt;
+
+            if (!Array.isArray(reasonwise_npt)) { // ADDED CHECK
+                console.error("reasonwise_npt is not an array or is undefined:", reasonwise_npt);
+                return; // Exit the function if reasonwise_npt is not valid
+            }
+
+
+            const tableData = reasonwise_npt.map(reason => {
+                const count = reason.count;
+                const totalOfftime = reason.value;
+                const averageOfftime = count > 0 ? totalOfftime / count : 0;
+                const totalHours = analysis.totalHours; // Use analysis.totalHours for real-time calculation
+                const occurrenceRate = count / totalHours;
+
+                return {
+                    reason: reason.reason,
+                    count: count,
+                    totalOfftime: formatSeconds(totalOfftime * 60),
+                    averageOfftime: formatSeconds(averageOfftime * 60),
+                    occurrenceRate: occurrenceRate.toFixed(2)
+                };
+            });
+
+            const rows = reasonComparisonTableBody.selectAll("tr")
+                .data(tableData)
+                .enter()
+                .append("tr");
+
+            rows.append("td").text(d => d.reason);
+            rows.append("td").text(d => d.totalOfftime);
+            rows.append("td").text(d => d.averageOfftime);
+            rows.append("td").text(d => d.count);
+            rows.append("td").text(d => d.occurrenceRate);
+        }
+
+
+        function tableToCSV(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) {
+                console.error(`Table with id '${tableId}' not found`);
+                return null;
+            }
+            const headers = Array.from(table.parentElement.querySelectorAll('thead th')).map(th => th.textContent).join(',');
+            const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                return Array.from(row.querySelectorAll('td')).map(td => td.textContent).join(',');
+            }).join('\n');
+            // console.log("trail:1 ", table.previousSibling.querySelectorAll('th'))
+            console.log("trail:2 ", table.parentElement.querySelectorAll('thead')[0].innerText)
+            // console.log("trail:3 ", table.previousSibling.querySelectorAll('thead th'))
+
+            return headers + '\n' + rows;
+        }
+
+
+        function downloadCSV(csvData, filename) {
+
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadTable(tableId, filename, format) {
+            if (format === 'csv') {
+
+                const csvData = tableToCSV(tableId);
+                if (csvData) {
+                    downloadCSV(csvData, filename);
+                }
+            } else if (format === 'pdf') {
+                downloadTableAsPDF(tableId, filename);
+            }
+        }
+
+        function downloadAllMachineTables(format) {
+    // Access analysis from the global scope or where it is defined.
+    // Assuming 'analysis' is available in the global scope after analyzeData() is called.
+    if (typeof analysis === 'undefined') {
+        console.error("Error: analysis is not defined. Ensure analyzeData() is called before downloadAllMachineTables()");
+        return;
+    }
+    const machineLabels = Object.keys(analysis.machines);
+    machineLabels.forEach(machine => {
+        downloadTable(`machine-${machine}-reason-body`, `machine_${machine}_analysis.${format}`, format);
+    });
+}
+
+        function downloadTableAsPDF(tableId, filename) {
+            const table = document.getElementById(tableId);
+            if (!table) {
+                console.error(`Table with id '${tableId}' not found`);
+                return;
+            }
+
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+            const rowsData = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                return Array.from(row.querySelectorAll('td')).map(td => td.textContent);
+            });
+
+            // console.log("jsPDF object:", jsPDF); // Debugging line - Check console for jsPDF object
+            const pdf = new jspdf.jsPDF('p', 'pt', 'letter'); // Corrected namespace access
+            pdf.autoTable({ // Corrected namespace access
+                head: [headers],
+                body: rowsData,
+                filename: filename,
+            });
+
+            pdf.save(filename);
+        }
+
+
+        // --- Start the Dashboard ---
+        initializePage();
+    </script>
+
+    <!-- Add Bootstrap JS (Popper.js and Bootstrap.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+        integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
