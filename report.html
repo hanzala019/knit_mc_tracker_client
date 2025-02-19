@@ -15,7 +15,7 @@
         /* General styles */
         body {
             font-family: 'Arial', sans-serif;
-            /* background-color: #f8f9fa; */
+             background-color: #f8f9fa; 
         }
 
         .container-fluid {
@@ -23,6 +23,26 @@
             /* Added max-width */
         }
 
+                .nav-link2 {
+            font-size: 16px;
+            color: #a9a4a4;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease, background-color 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .nav-link2:hover {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .nav-link2.active {
+            /* background-color: #007bff; */
+            color: #007bff;
+            font-weight: bold;
+        }
         .stat-card {
             border: 1px solid #dee2e6;
             border-radius: 8px;
@@ -39,7 +59,7 @@
         }
 
         .stat-label {
-            color: #6c757d;
+            color: #515457;
             font-size: 0.9rem;
         }
 
@@ -52,6 +72,7 @@
         .nav-tabs .nav-link.active {
             font-weight: bold;
         }
+
 
         /* Table styles */
         .table-responsive {
@@ -137,14 +158,14 @@
         <!-- Navigation Tabs -->
         <ul class="nav nav-tabs mb-4" id="analyticsTabs" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">Overview</a>
+                <a class="nav-link2 active" id="overview-tab" data-bs-toggle="tab" href="#overview" role="tab">Overview</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="machine-analysis-tab" data-bs-toggle="tab" href="#machineAnalysis"
+                <a class="nav-link2" id="machine-analysis-tab" data-bs-toggle="tab" href="#machineAnalysis"
                     role="tab">Machine Analysis</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="reason-analysis-tab" data-bs-toggle="tab" href="#reasonAnalysis"
+                <a class="nav-link2" id="reason-analysis-tab" data-bs-toggle="tab" href="#reasonAnalysis"
                     role="tab">Reason Analysis</a>
             </li>
         </ul>
@@ -277,7 +298,7 @@
             machines: [],
             result: []
         };
-        const api = "https://knit-mc-tracker-server.onrender.com"
+        const api =  "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = [
@@ -784,7 +805,7 @@
                 card.innerHTML = `
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">Machine ${machine} Analysis</h5>
+                            <h5 class="mb-0">${machine} Analysis</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-2">
@@ -935,28 +956,52 @@
     });
 }
 
-        function downloadTableAsPDF(tableId, filename) {
-            const table = document.getElementById(tableId);
-            if (!table) {
-                console.error(`Table with id '${tableId}' not found`);
-                return;
+function downloadTableAsPDF(tableId, filename) {
+    const table = document.getElementById(tableId);
+    if (!table) {
+        console.error(`Table with id '${tableId}' not found`);
+        return;
+    }
+
+    try {
+        // Get table headers from the parent table's thead
+        const parentTable = table.closest('table');
+        const headers = Array.from(parentTable.querySelectorAll('thead th')).map(th => th.textContent);
+        
+        // Get table rows from the body
+        const rowsData = Array.from(table.querySelectorAll('tr')).map(row => {
+            return Array.from(row.querySelectorAll('td')).map(td => td.textContent);
+        });
+
+        // Create PDF document
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Add title
+        doc.text(filename.replace('.pdf', '').replace(/_/g, ' '), 14, 15);
+        
+        // Add table using autoTable plugin
+        doc.autoTable({
+            head: [headers],
+            body: rowsData,
+            startY: 25,
+            theme: 'grid',
+            styles: {
+                fontSize: 8,
+                cellPadding: 2
+            },
+            headStyles: {
+                fillColor: [51, 122, 183],
+                textColor: 255
             }
+        });
 
-            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
-            const rowsData = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-                return Array.from(row.querySelectorAll('td')).map(td => td.textContent);
-            });
-
-            // console.log("jsPDF object:", jsPDF); // Debugging line - Check console for jsPDF object
-            const pdf = new jspdf.jsPDF('p', 'pt', 'letter'); // Corrected namespace access
-            pdf.autoTable({ // Corrected namespace access
-                head: [headers],
-                body: rowsData,
-                filename: filename,
-            });
-
-            pdf.save(filename);
-        }
+        doc.save(filename);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Failed to generate PDF. Please check console for details.");
+    }
+}
 
 
         // --- Start the Dashboard ---

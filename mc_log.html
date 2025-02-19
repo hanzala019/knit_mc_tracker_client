@@ -122,6 +122,7 @@
                                     <!-- Dynamic headers will be inserted here -->
                                     <th>N/A</th>
                                     <th>Total</th>
+                                    <th>NPT(%)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -210,7 +211,7 @@
             {name:"Yarn Breakage", count: 0},
             
         ]
-        const api =  "https://knit-mc-tracker-server.onrender.com"
+        const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
         // Sample data
         window.addEventListener("load", FetchData);
         window.addEventListener("refresh", FetchData);
@@ -303,6 +304,7 @@
                     <th>Machine</th>
                     <th>N/A</th>
                     <th>Total</th>
+                    <th>NPT(%)</th>
                 `;
             }
         }
@@ -558,6 +560,7 @@
     const table = document.getElementById("machineWiseNPTTable");
     const thead = table.querySelector("thead tr");
     const tbody = table.querySelector("tbody");
+    const currentTime = getCurrentTimeInMilliSeconds();
 
     // Reset counts before calculating
     reasons.forEach(reason => reason.count = 0);
@@ -573,7 +576,7 @@
         thead.appendChild(th);
     });
 
-    thead.innerHTML += `<th>N/A (0)</th><th>Total (0)</th>`; // Add N/A and Total
+    thead.innerHTML += `<th>N/A (0)</th><th>Total (0)</th><th>NPT(%)</th>`; // Add N/A, Total, and NPT%
 
     // Clear previous table rows
     tbody.innerHTML = "";
@@ -624,7 +627,10 @@
         totalNPT += totalMachineTime;
         totalCount += machineTotalCount; // Update total count
 
-        row.innerHTML += `<td>${na || "-"}</td><td>${totalMachineTime || "-"}</td>`;
+        // Calculate NPT percentage for this machine
+        const nptPercentage = ((totalMachineTime / currentTime) * 100).toFixed(1);
+
+        row.innerHTML += `<td>${na || "-"}</td><td>${totalMachineTime || "-"}</td><td>${nptPercentage}%</td>`;
         tbody.appendChild(row);
     }
 
@@ -635,15 +641,18 @@
     });
 
     // Update N/A count
-    const naTh = thead.querySelector("th:nth-last-child(2)"); // Second last column (N/A)
+    const naTh = thead.querySelector("th:nth-last-child(3)"); // Third last column (N/A)
     if (naTh) naTh.textContent = `N/A (${unknownCount})`;
 
     // Update total count in the header
-    const totalTh = thead.querySelector("th:last-child"); // Last column (Total)
+    const totalTh = thead.querySelector("th:nth-last-child(2)"); // Second last column (Total)
     if (totalTh) totalTh.textContent = `Total (${totalCount})`;
-    const percentageNPT = ((totalNPT/getCurrentTimeInMilliSeconds())*100).toFixed(1)
-    // Update total NPT footer
-    document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT || 0) + " (" + percentageNPT + "%)"}`;
+    
+    // Calculate overall NPT percentage
+    const totalPercentageNPT = ((totalNPT / currentTime) * 100).toFixed(1);
+    
+    // Update total NPT footer with percentage
+    document.getElementById("totalNPTFooter").textContent = `Total NPT: ${formatSeconds(totalNPT || 0)} `; //(${totalPercentageNPT}%)
 }
 
 
