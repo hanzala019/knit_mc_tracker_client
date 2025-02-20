@@ -5,17 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Machine Analytics Dashboard</title>
-    
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script> <!-- Added autotable plugin explicitly -->
     <link href="styles/style.css" rel="stylesheet">
+    <link href="styles/chart.css" rel="stylesheet">
     <style>
         /* General styles */
         body {
             font-family: 'Arial', sans-serif;
-             background-color: #f8f9fa; 
+             background-color: #f8f9fa;
         }
 
         .container-fluid {
@@ -83,19 +84,58 @@
             margin-bottom: 0.5rem;
             margin-right: 0.5rem; /* Added spacing between buttons */
         }
+    /* Machine Grid Layout */
+.machine-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -0.25rem; /* Negative margin to counter the item padding */
+}
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .col-md-3 {
-                width: 50%;
-            }
-        }
+.machine-item {
+    flex: 0 0 auto;
+    width: 25%; 
+    padding: 0.25rem;
+    box-sizing: border-box;
+}
 
-        @media (max-width: 576px) {
-            .col-md-3 {
-                width: 100%;
-            }
-        }
+.machine-checkbox {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.machine-checkbox .form-check-label {
+    max-width: 100%;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.75rem; /* Slightly smaller font for better fit */
+}
+
+/* Responsive adjustments - maintain 4 items per row max in mobile */
+@media (min-width: 1200px) {
+    .machine-item {
+        width: 20%; /* 5 items per row on very large screens */
+    }
+}
+
+
+/* Switch to 3 per row at medium breakpoint */
+@media (min-width: 768px) {
+    .machine-item {
+        width: 25%; /* 4 items per row */
+    }
+}
+
+/* Finally switch to 2 per row at smallest screens */
+@media (min-width: 480px) {
+    .machine-item {
+        width: 50%; /* 2 items per row for very small phones */
+
+    }
+}
+
+
     </style>
 </head>
 
@@ -143,13 +183,6 @@
                                 Select All Machines
                             </label>
                         </div>
-                        <!-- Added Real Time calculation option -->
-                        <div class="form-check mt-2">
-                            <input class="form-check-input" type="checkbox" id="realTimeToggle">
-                            <label class="form-check-label" for="realTimeToggle">
-                                Real Time Calculation
-                            </label>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +212,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="stat-card">
                             <div class="stat-value" id="totalDowntime">-</div>
-                            <div class="stat-label">Total Downtime (minutes)</div>
+                            <div class="stat-label">Total Downtime </div>
                         </div>
                     </div>
                     <div class="col-md-3 col-sm-6">
@@ -229,6 +262,22 @@
                                         <tbody id="overviewMachineTableBody"></tbody>
                                     </table>
                                 </div>
+                                <!-- Charts -->
+                                <div class="row mt-4 mb-4">
+                                    <div class="col-md-6">
+                                      <div class="chart-container">
+                                        <h5 class="text-center">Downtime by Machine (seconds)</h5>
+                                        <div id="machineBarChart"></div>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                      <div class="chart-container">
+                                        <h5 class="text-center">Stop Events by Machine</h5>
+                                        <div id="reasonPieChart"></div>
+                                      </div>
+                                    </div>
+                                  </div>
+
                             </div>
                         </div>
                     </div>
@@ -330,6 +379,42 @@
 
             return result.join(' ');
         }
+        function formatDateTime(datestring) {
+            
+            const date = new Date(datestring);
+
+            const dayName = date.toUTCString().split(',')[0]; // Get day name (Thu)
+            const day = String(date.getUTCDate()).padStart(2, '0'); // Get day (20)
+            const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }); // Get month (Feb)
+            const year = date.getUTCFullYear(); // Get year (2025)
+
+            let hours = date.getUTCHours(); // Get hours (0-23)
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0'); // Get minutes
+            const ampm = hours >= 12 ? 'PM' : 'AM'; // Determine AM/PM
+
+            // Convert to 12-hour format
+            hours = hours % 12 || 12;
+
+            return formattedDate = `${dayName}, ${day} ${month} ${year} ${hours}:${minutes} ${ampm}`;
+            
+
+        }
+
+        function formatToHoursOnly(seconds) {
+            // const days = Math.floor(seconds / 86400); // 86400 seconds in a day
+            const hours = Math.floor((seconds / 3600) );
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+
+            let result = [];
+
+            // if (days > 0) result.push(`${days}d`);
+            if (hours > 0) result.push(`${hours}h`);
+            if (minutes > 0) result.push(`${minutes}min`);
+            if (secs > 0) result.push(`${secs}sec`);
+
+            return result.join(' ');
+        }
 
         // --- Data Fetching ---
         async function fetchData() {
@@ -339,7 +424,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                // console.log(rawData)
+                console.log(data)
                 // if (!rawData || !Array.isArray(rawData)) {
                 //     throw new Error('API returned invalid data format');
                 // }
@@ -485,54 +570,78 @@
 
         // --- Initialize Machine Checkboxes - Reason Removed ---
         function initializeMachineReasonCheckboxes(machineData) {
-            const container = document.getElementById('machineCheckboxes');
-            container.innerHTML = '';
+    const container = document.getElementById('machineCheckboxes');
+    container.innerHTML = '';
 
-            if (!Array.isArray(machineData) || machineData.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning">No machine data available</div>';
-                return;
-            }
+    if (!Array.isArray(machineData) || machineData.length === 0) {
+        container.innerHTML = '<div class="alert alert-warning">No machine data available</div>';
+        return;
+    }
 
-            // --- Machine Checkboxes ---
-            const machineDiv = document.createElement('div');
-            machineDiv.className = 'mb-3';
-            machineDiv.innerHTML = '<h5>Machines:</h5>';
-            const machineRow = document.createElement('div');
-            machineRow.className = 'row g-2';
+    // --- Machine Checkboxes ---
+    const machineDiv = document.createElement('div');
+    machineDiv.className = 'mb-3';
+    machineDiv.innerHTML = '<h5>Machines:</h5>';
+    const machineRow = document.createElement('div');
+    machineRow.className = 'row g-1'; // Reduced gutter spacing for tighter layout
 
-            machineData.forEach((machineItem, index) => {
-                const machine = machineItem.machine;
+    machineData.forEach((machineItem, index) => {
+        const machine = machineItem.machine;
 
-                const col = document.createElement('div');
-                col.className = 'col-md-3 col-sm-4 col-6';
+        const col = document.createElement('div');
+        // Adjusted column sizing for more items per row
+        // xxl (extra extra large): 2 columns (6 items per row)
+        // xl (extra large): 2 columns (6 items per row)
+        // lg (large): 2 columns (6 items per row)
+        // md (medium): 3 columns (4 items per row)
+        // sm (small): 4 columns (3 items per row)
+        // xs (default): 6 columns (2 items per row)
+        col.className = 'col-xxl-2 col-xl-2 col-lg-2 col-md-3 col-sm-4 col-6';
 
-                const checkboxDiv = document.createElement('div');
-                checkboxDiv.className = 'form-check machine-checkbox';
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'form-check machine-checkbox small'; // Added 'small' class for compact text
 
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.className = 'form-check-input';
-                input.id = `machine-${machine}`;
-                input.value = machine;
-                input.checked = true;
-                input.addEventListener('change', () => analyzeData());
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'form-check-input';
+        input.id = `machine-${machine}`;
+        input.value = machine;
+        input.checked = true;
+        input.addEventListener('change', () => analyzeData());
 
-                const label = document.createElement('label');
-                label.className = 'form-check-label';
-                label.htmlFor = `machine-${machine}`;
-                label.textContent = machine;
+        const label = document.createElement('label');
+        label.className = 'form-check-label text-truncate'; // Added text-truncate to prevent wrapping
+        label.htmlFor = `machine-${machine}`;
+        label.textContent = machine;
+        label.title = machine; // Added title for tooltip on hover when text is truncated
 
-                checkboxDiv.appendChild(input);
-                checkboxDiv.appendChild(label);
-                col.appendChild(checkboxDiv);
-                machineRow.appendChild(col);
+        checkboxDiv.appendChild(input);
+        checkboxDiv.appendChild(label);
+        col.appendChild(checkboxDiv);
+        machineRow.appendChild(col);
 
-                // Assign colors for consistent visualization
-                machineColors[machine] = defaultColors[index % defaultColors.length];
-            });
-            machineDiv.appendChild(machineRow);
-            container.appendChild(machineDiv);
+        // Assign colors for consistent visualization
+        machineColors[machine] = defaultColors[index % defaultColors.length];
+    });
+    machineDiv.appendChild(machineRow);
+    container.appendChild(machineDiv);
+    
+    // Add some custom CSS for better compact layout
+    const style = document.createElement('style');
+    style.textContent = `
+        .machine-checkbox.small {
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
         }
+        .machine-checkbox.small .form-check-label {
+            font-size: 0.875rem;
+            max-width: 100%;
+            display: inline-block;
+        }
+    `;
+    document.head.appendChild(style);
+}
 
         // --- Data Analysis ---
         function analyzeData(machineData) {
@@ -553,6 +662,9 @@
                 updateOverviewTab(analysis);
                 updateMachineAnalysisTab(analysis);
                 updateReasonAnalysisTab(analysis);
+
+                // Render charts with the analysis data
+                renderOverviewCharts(analysis);
             } catch (error) {
                 handleError(error, 'Failed to analyze data');
             }
@@ -565,7 +677,11 @@
         }
 
         function analyzeEvents(selectedMachines, machineData) {
-            console.log("Data received in analyzeEvents:", machineData);
+            // console.log("Data received in analyzeEvents:", machineData);
+
+            const now = new Date();
+            const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Today's midnight
+            const timePassed = now.getTime() - midnight.getTime();
 
             const analysis = {
                 machines: {},
@@ -573,12 +689,13 @@
                 totalDowntime: 0,
                 totalEvents: 0,
                 uptime: 0,
+                totalRuntime: timePassed/1000,
                 hourlyDowntime: {},
                 firstEventTime: Infinity,
                 lastEventTime: 0
             };
-
-            let totalRuntime = 0;
+            console.log("in analysis",analysis.totalRuntime)
+            
 
             // Initialize machine-specific analysis structures
             selectedMachines.forEach(machine => {
@@ -647,23 +764,23 @@
                     // Process event duration (assuming at index 4)
                     if (event[4]) {
                         const downtimeSeconds = event[4];
-                        const downtimeMinutes = downtimeSeconds / 60;
+                        // const downtimeMinutes = downtimeSeconds / 60;
 
                         // Update totals
-                        analysis.totalDowntime += downtimeMinutes;
-                        analysis.machines[machine].downtime += downtimeMinutes;
+                        analysis.totalDowntime += downtimeSeconds;
+                        analysis.machines[machine].downtime += downtimeSeconds;
 
                         // Update hourly downtime stats
                         const offDate = new Date(event[2]); // Use timestamp at index 2 for hour
                         const hourOfDay = offDate.getHours();
-                        analysis.hourlyDowntime[machine][hourOfDay] += downtimeMinutes;
+                        analysis.hourlyDowntime[machine][hourOfDay] += downtimeSeconds;
 
                         // Process reason data (assuming at index 6)
                         const reason = event[6] || "N/A";
                         let reasonData = reasonwise_npt.find(r => r.reason === reason);
                         if (reasonData) {
                             reasonData.count++;
-                            reasonData.value += downtimeMinutes;
+                            reasonData.value += downtimeSeconds;
                             reasonData.hourlyEvents[hourOfDay]++;
                         }
 
@@ -671,27 +788,17 @@
                         analysis.machines[machine].reasonEventsCount[reason] =
                             (analysis.machines[machine].reasonEventsCount[reason] || 0) + 1;
                         analysis.machines[machine].reasonTotalDowntime[reason] =
-                            (analysis.machines[machine].reasonTotalDowntime[reason] || 0) + downtimeMinutes;
+                            (analysis.machines[machine].reasonTotalDowntime[reason] || 0) + downtimeSeconds;
                     }
                 });
             });
 
-            // Calculate total runtime and elapsed hours based on real-time or fixed time
-            let totalHours = 24; // Default is 24 hours
+            
 
-            if (useRealTimeCalculation && analysis.firstEventTime < Infinity && analysis.lastEventTime > 0) {
-                const elapsedMilliseconds = analysis.lastEventTime - analysis.firstEventTime;
-                const elapsedHours = elapsedMilliseconds / (1000 * 60 * 60);
-                totalHours = elapsedHours;
-                totalRuntime = elapsedHours * 60; // Convert hours to minutes
-            } else {
-                totalRuntime = 24 * 60; // 24 hours in minutes
-            }
-
-            analysis.totalHours = totalHours;
+            analysis.totalHours = timePassed/1000;
 
             // Calculate uptime percentage
-            let totalPossibleUptime = totalRuntime * selectedMachines.length;
+            let totalPossibleUptime = analysis.totalHours * selectedMachines.length; // in seconds
             let selectedMachinesDowntime = 0;
             selectedMachines.forEach(machine => {
                 if (analysis.machines[machine]) {
@@ -717,9 +824,9 @@
             const uptimePercentageElement = document.getElementById('uptimePercentage');
             // const realTimeUptimeElement = document.getElementById("real-time-uptime").value+= " " +
 
-            totalDowntimeElement.textContent = formatSeconds(analysis.totalDowntime * 60);
+            totalDowntimeElement.textContent =  formatToHoursOnly(analysis.totalDowntime);
             totalEventsElement.textContent = analysis.totalEvents;
-            avgDowntimeElement.textContent = formatSeconds(analysis.avgDowntime * 60);
+            avgDowntimeElement.textContent = formatSeconds(analysis.avgDowntime);
             uptimePercentageElement.textContent = (analysis.uptime > 0 ? ((analysis.uptime / (analysis.totalDowntime + analysis.uptime)) * 100).toFixed(2) : 0) + "%" ;
 
             updateOverviewTable(analysis);
@@ -731,24 +838,27 @@
 
             const machineLabels = Object.keys(analysis.machines);
             const tableData = machineLabels.map(machine => {
+                // console.log(machineAnalysis)
                 const machineAnalysis = analysis.machines[machine];
-                const mostDowntimeReason = findMostFrequentReason(machineAnalysis.reasonEventsCount) || 'N/A';
-                const totalDowntimeMinutes = machineAnalysis.downtime;
-
+                const mostDowntimeReason = findMostFrequentReason(machineAnalysis.reasonEventsCount) || '-----';
+                const totalDowntimeSeconds = machineAnalysis.downtime;
+                console.log(machineAnalysis)
                 // Calculate NPT percentage based on real-time or fixed 24h
-                const totalTimeMinutes = useRealTimeCalculation ? (analysis.totalHours * 60) : (24 * 60);
-                const nptPercentage = ((totalDowntimeMinutes / totalTimeMinutes) * 100).toFixed(2);
+                const totalTimeSeconds = analysis.totalRuntime;
+                console.log("in overview", analysis.uptime)
+                const nptPercentage = ((totalDowntimeSeconds / totalTimeSeconds) * 100).toFixed(1);
 
                 return {
                     machineNum: machine,
                     mostDowntimeReason: mostDowntimeReason,
                     eventNum: machineAnalysis.events,
-                    avgDowntime: formatSeconds((analysis.totalEvents > 0 ? (machineAnalysis.downtime / machineAnalysis.events) * 60 : 0) ), // Avg downtime for each machine event
-                    totalDowntime: formatSeconds(totalDowntimeMinutes * 60),
+                    avgDowntime: formatSeconds((analysis.totalEvents > 0 ? (machineAnalysis.downtime / machineAnalysis.events)  : 0) ), // Avg downtime for each machine event
+                    totalDowntime: formatSeconds(totalDowntimeSeconds),
+                    totalUpTime:totalTimeSeconds,
                     nptPercentage: nptPercentage + "%"
                 };
             });
-
+            console.log(tableData)
             const rows = overviewMachineTableBody.selectAll("tr")
                 .data(tableData)
                 .enter()
@@ -779,35 +889,38 @@
         }
 
         function updateMachineAnalysisTables(analysis) {
-            const machineAnalysisTablesContainer = document.getElementById('machineAnalysisTables');
-            machineAnalysisTablesContainer.innerHTML = ''; // Clear existing tables
+    const machineAnalysisTablesContainer = document.getElementById('machineAnalysisTables');
+    machineAnalysisTablesContainer.innerHTML = ''; // Clear existing tables
 
-            const machineLabels = Object.keys(analysis.machines);
-            let allReasons = [ "Maintenance", "Needle Breakage", "No Order / No Program", "No Yarn", "Power", "Program Change", "Roll Cutting", "Yarn Breakage", "N/A", "No operation data" ]; // Static list of reasons
+    const machineLabels = Object.keys(analysis.machines);
+    // Remove "Total" from static reasons list since we'll calculate it separately
+    let allReasons = ["Maintenance", "Needle Breakage", "No Order / No Program", "No Yarn", "Power", "Program Change", "Roll Cutting", "Yarn Breakage", "N/A"];
 
-            // Download All Button Container
-            const downloadAllButtonDiv = document.createElement('div');
-            downloadAllButtonDiv.className = 'col-12 mb-2';
-            downloadAllButtonDiv.innerHTML = `
-                <div class="download-all-buttons">
-                    <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('csv')">Download All as CSV</button>
-                    <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('pdf')">Download All as PDF</button>
+    // Download All Button Container
+    const downloadAllButtonDiv = document.createElement('div');
+    downloadAllButtonDiv.className = 'col-12 mb-2';
+    downloadAllButtonDiv.innerHTML = `
+        <div class="download-all-buttons">
+            <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('csv')">Download All as CSV</button>
+            <button class="btn btn-sm btn-outline-primary download-button" onclick="downloadAllMachineTables('pdf')">Download All as PDF</button>
+        </div>
+    `;
+    machineAnalysisTablesContainer.appendChild(downloadAllButtonDiv);
+
+    machineLabels.forEach(machine => {
+        const machineData = analysis.machines[machine];
+        const machineEvents = window.cachedMachineData.find(m => m.machine === machine)?.result || [];
+
+        const card = document.createElement('div');
+        card.className = 'col-md-12 mb-4'; // Make each table take full width
+        card.innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">${machine} Analysis</h5>
                 </div>
-            `;
-            machineAnalysisTablesContainer.appendChild(downloadAllButtonDiv);
-
-
-            machineLabels.forEach(machine => {
-                const machineData = analysis.machines[machine];
-
-                const card = document.createElement('div');
-                card.className = 'col-md-12 mb-4'; // Make each table take full width
-                card.innerHTML = `
-                    <div class="card">
-                        <div class="card-header">
-                            <h5 class="mb-0">${machine} Analysis</h5>
-                        </div>
-                        <div class="card-body">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7">
                             <div class="mb-2">
                                 <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('machine-${machine}-reason-body', 'machine_${machine}_analysis.csv', 'csv')">Download as CSV</button>
                                 <button class="btn btn-sm btn-outline-secondary download-button" onclick="downloadTable('machine-${machine}-reason-body', 'machine_${machine}_analysis.pdf', 'pdf')">Download as PDF</button>
@@ -828,76 +941,320 @@
                                 </table>
                             </div>
                         </div>
+                        <div class="col-md-5">
+                            <div id="machine-${machine}-scatter" class="scatter-plot" style="height: 250px;"></div>
+                        </div>
                     </div>
-                `;
-                machineAnalysisTablesContainer.appendChild(card);
-                const tableBody = d3.select(`#machine-${machine}-reason-body`);
-                const tableRows = tableBody.selectAll('tr')
-                    .data(allReasons)
-                    .enter()
-                    .append('tr');
+                </div>
+            </div>
+        `;
+        machineAnalysisTablesContainer.appendChild(card);
+        
+        // Populate table with regular reasons
+        const tableBody = d3.select(`#machine-${machine}-reason-body`);
+        
+        // Initialize totals
+        let totalEvents = 0;
+        let totalDowntime = 0;
+        
+        // Add rows for each reason
+        const tableRows = tableBody.selectAll('tr.reason-row')
+            .data(allReasons)
+            .enter()
+            .append('tr')
+            .attr('class', 'reason-row');
 
-                tableRows.each(function(reason) {
-                    const reasonDowntime = machineData.reasonTotalDowntime[reason] || 0;
-                    const reasonEvents = machineData.reasonEventsCount[reason] || 0;
-                    const avgReasonDowntime = reasonEvents > 0 ? (reasonDowntime / reasonEvents) : 0;
-                    const nptReasonPercentage = ((reasonDowntime / (analysis.totalHours * 60)) * 100).toFixed(2); // Use analysis.totalHours for real-time calculation
+        tableRows.each(function(reason) {
+            const reasonDowntime = machineData.reasonTotalDowntime[reason] || 0;
+            const reasonEvents = machineData.reasonEventsCount[reason] || 0;
+            const avgReasonDowntime = reasonEvents > 0 ? (reasonDowntime / reasonEvents) : 0;
+            const nptReasonPercentage = ((reasonDowntime / (analysis.totalHours)) * 100).toFixed(2);
 
-                    d3.select(this).append('td').text(reason);
-                    d3.select(this).append('td').text(reasonEvents);
-                    d3.select(this).append('td').text(formatSeconds(avgReasonDowntime * 60));
-                    d3.select(this).append('td').text(formatSeconds(reasonDowntime * 60));
-                    d3.select(this).append('td').text(nptReasonPercentage + "%");
-                });
+            // Update totals
+            totalEvents += reasonEvents;
+            totalDowntime += reasonDowntime;
 
+            d3.select(this).append('td').text(reason);
+            d3.select(this).append('td').text(reasonEvents);
+            d3.select(this).append('td').text(formatSeconds(avgReasonDowntime));
+            d3.select(this).append('td').text(formatSeconds(reasonDowntime));
+            d3.select(this).append('td').text(nptReasonPercentage + "%");
+        });
+        
+        // Calculate and add the total row
+        const totalAvgDowntime = totalEvents > 0 ? (totalDowntime / totalEvents) : 0;
+        const totalNptPercentage = ((totalDowntime / (analysis.totalHours)) * 100).toFixed(2);
+        
+        const totalRow = tableBody.append('tr')
+            .attr('class', 'total-row font-weight-bold')
+            .style('background-color', '#f8f9fa');
+            
+        totalRow.append('td').text('Total').style('font-weight', 'bold');
+        totalRow.append('td').text(totalEvents).style('font-weight', 'bold');
+        totalRow.append('td').text(formatSeconds(totalAvgDowntime)).style('font-weight', 'bold');
+        totalRow.append('td').text(formatSeconds(totalDowntime)).style('font-weight', 'bold');
+        totalRow.append('td').text(totalNptPercentage + "%").style('font-weight', 'bold');
+        
+        // Render scatter plot for this machine
+        renderMachineScatterPlot(machine, machineEvents);
+    });
+}
 
-            });
-        }
-
+function renderMachineScatterPlot(machine, machineEvents) {
+    // Filter and prepare data
+    console.log(machineEvents)
+    const scatterData = machineEvents
+        .filter(event => event[2] && event[3]) // Ensure we have timestamp and duration
+        .map(event => {
+            const startTime = new Date(event[2]);
+            const hour = startTime.getUTCHours() + (startTime.getMinutes() / 60);
+            const duration = event[4] 
+            const reason = event[6] || 'N/A';
+            return {
+                hour,
+                duration,
+                reason,
+                formattedTime: formatDateTime(startTime),
+                formattedDuration: formatSeconds(event[4])
+            };
+        });
+        console.log(scatterData)
+    
+    if (scatterData.length === 0) {
+        d3.select(`#machine-${machine}-scatter`)
+            .append("div")
+            .style("text-align", "center")
+            .style("padding-top", "100px")
+            .text("No event data available for scatter plot");
+        return;
+    }
+    
+    const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+    const width = document.getElementById(`machine-${machine}-scatter`).clientWidth - margin.left - margin.right;
+    const height = 250 - margin.top - margin.bottom;
+    
+    // Create tooltip
+    const tooltip = d3.select("body").select(".tooltip").node() ?
+        d3.select("body").select(".tooltip") :
+        d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .style("background-color", "rgba(0, 0, 0, 0.7)")
+            .style("color", "white")
+            .style("padding", "8px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px");
+    
+    // Create SVG
+    const svg = d3.select(`#machine-${machine}-scatter`)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+    // Define scales
+    const x = d3.scaleLinear()
+        .domain([0, 24])
+        .range([0, width]);
+    
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(scatterData, d => d.duration) * 1.1])
+        .range([height, 0]);
+    
+    // Define color scale for reasons
+    const reasonSet = new Set(scatterData.map(d => d.reason));
+    const colors = d3.scaleOrdinal()
+        .domain(Array.from(reasonSet))
+        .range(defaultColors);
+    
+    // Add X axis
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x)
+            .tickFormat(d => `${d}:00`)
+            .ticks(6))
+        .selectAll("text")
+        .style("font-size", "9px");
+    
+    // Add Y axis
+    svg.append("g")
+        .call(d3.axisLeft(y).ticks(5))
+        .selectAll("text")
+        .style("font-size", "9px");
+    
+    // Add axis labels
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 5)
+        .style("font-size", "10px")
+        .text("Time of Day (hours)");
+    
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .style("font-size", "10px")
+        .text("Duration (seconds)");
+    
+    // Add title
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", 0)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .text(`${machine} Downtime Events`);
+    
+    // Add dots
+    svg.selectAll(".dot")
+        .data(scatterData)
+        .enter()
+        .append("circle")
+        .attr("class", "dot")
+        .attr("cx", d => x(d.hour))
+        .attr("cy", d => y(d.duration))
+        .attr("r", 4)
+        .style("fill", d => colors(d.reason))
+        .style("opacity", 0.7)
+        .style("stroke", "white")
+        .style("stroke-width", 0.5)
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+                .transition()
+                .duration(100)
+                .attr("r", 6)
+                .style("opacity", 1);
+                
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0.9);
+            tooltip.html(`
+                <strong>Time:</strong> ${d.formattedTime}<br>
+                <strong>Duration:</strong> ${d.formattedDuration}<br>
+                <strong>Reason:</strong> ${d.reason}
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            d3.select(this)
+                .transition()
+                .duration(100)
+                .attr("r", 4)
+                .style("opacity", 0.7);
+                
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+    
+    // Add legend if we have multiple reasons
+    if (reasonSet.size > 1) {
+        const legendContainer = d3.select(`#machine-${machine}-scatter`)
+            .append("div")
+            .attr("class", "scatter-legend")
+            .style("font-size", "9px")
+            .style("margin-top", "5px")
+            .style("display", "flex")
+            .style("flex-wrap", "wrap")
+            .style("justify-content", "center");
+        
+        Array.from(reasonSet).forEach(reason => {
+            const legendItem = legendContainer.append("div")
+                .style("display", "flex")
+                .style("align-items", "center")
+                .style("margin-right", "8px")
+                .style("margin-bottom", "3px");
+            
+            legendItem.append("div")
+                .style("width", "8px")
+                .style("height", "8px")
+                .style("border-radius", "50%")
+                .style("background-color", colors(reason))
+                .style("margin-right", "3px");
+            
+            legendItem.append("span")
+                .text(reason);
+        });
+    }
+}
 
         function updateReasonAnalysisTab(analysis) {
             updateReasonComparisonTable(analysis);
         }
 
         function updateReasonComparisonTable(analysis) {
-            const reasonComparisonTableBody = d3.select("#reasonComparisonTableBody");
-            reasonComparisonTableBody.selectAll("*").remove();
+    const reasonComparisonTableBody = d3.select("#reasonComparisonTableBody");
+    reasonComparisonTableBody.selectAll("*").remove();
 
-            let reasonwise_npt = analysis.reasonwise_npt;
+    let reasonwise_npt = analysis.reasonwise_npt;
 
-            if (!Array.isArray(reasonwise_npt)) { // ADDED CHECK
-                console.error("reasonwise_npt is not an array or is undefined:", reasonwise_npt);
-                return; // Exit the function if reasonwise_npt is not valid
-            }
+    if (!Array.isArray(reasonwise_npt)) { // ADDED CHECK
+        console.error("reasonwise_npt is not an array or is undefined:", reasonwise_npt);
+        return; // Exit the function if reasonwise_npt is not valid
+    }
 
+    // Calculate totals while mapping the data
+    let totalCount = 0;
+    let totalOfftimeSeconds = 0;
 
-            const tableData = reasonwise_npt.map(reason => {
-                const count = reason.count;
-                const totalOfftime = reason.value;
-                const averageOfftime = count > 0 ? totalOfftime / count : 0;
-                const totalHours = analysis.totalHours; // Use analysis.totalHours for real-time calculation
-                const occurrenceRate = count / totalHours;
+    const tableData = reasonwise_npt.map(reason => {
+        const count = reason.count;
+        const totalOfftime = reason.value;
+        const averageOfftime = count > 0 ? totalOfftime / count : 0;
+        const totalHours = analysis.totalHours / 3600; // Use analysis.totalHours for real-time calculation
+        const occurrenceRate = count / totalHours;
 
-                return {
-                    reason: reason.reason,
-                    count: count,
-                    totalOfftime: formatSeconds(totalOfftime * 60),
-                    averageOfftime: formatSeconds(averageOfftime * 60),
-                    occurrenceRate: occurrenceRate.toFixed(2)
-                };
-            });
+        // Update totals
+        totalCount += count;
+        totalOfftimeSeconds += totalOfftime;
 
-            const rows = reasonComparisonTableBody.selectAll("tr")
-                .data(tableData)
-                .enter()
-                .append("tr");
+        return {
+            reason: reason.reason,
+            count: count,
+            totalOfftime: formatSeconds(totalOfftime),
+            totalOfftimeSeconds: totalOfftime, // Store raw seconds for calculations
+            averageOfftime: formatSeconds(averageOfftime),
+            averageOfftimeSeconds: averageOfftime, // Store raw seconds for calculations
+            occurrenceRate: occurrenceRate.toFixed(2)
+        };
+    });
 
-            rows.append("td").text(d => d.reason);
-            rows.append("td").text(d => d.totalOfftime);
-            rows.append("td").text(d => d.averageOfftime);
-            rows.append("td").text(d => d.count);
-            rows.append("td").text(d => d.occurrenceRate);
-        }
+    // Calculate final totals
+    const totalHours = analysis.totalHours / 3600;
+    const totalOccurrenceRate = (totalCount / totalHours).toFixed(2);
+    const totalAverageOfftimeSeconds = totalCount > 0 ? totalOfftimeSeconds / totalCount : 0;
+
+    // Render regular rows
+    const rows = reasonComparisonTableBody.selectAll("tr.data-row")
+        .data(tableData)
+        .enter()
+        .append("tr")
+        .attr("class", "data-row");
+
+    rows.append("td").text(d => d.reason);
+    rows.append("td").text(d => d.totalOfftime);
+    rows.append("td").text(d => d.averageOfftime);
+    rows.append("td").text(d => d.count);
+    rows.append("td").text(d => d.occurrenceRate);
+
+    // Add the total row
+    const totalRow = reasonComparisonTableBody.append("tr")
+        .attr("class", "total-row")
+        .style("background-color", "#f8f9fa")
+        .style("font-weight", "bold");
+
+    totalRow.append("td").text("Total");
+    totalRow.append("td").text(formatSeconds(totalOfftimeSeconds));
+    totalRow.append("td").text(formatSeconds(totalAverageOfftimeSeconds));
+    totalRow.append("td").text(totalCount);
+    totalRow.append("td").text(totalOccurrenceRate);
+}
 
 
         function tableToCSV(tableId) {
@@ -967,7 +1324,7 @@ function downloadTableAsPDF(tableId, filename) {
         // Get table headers from the parent table's thead
         const parentTable = table.closest('table');
         const headers = Array.from(parentTable.querySelectorAll('thead th')).map(th => th.textContent);
-        
+
         // Get table rows from the body
         const rowsData = Array.from(table.querySelectorAll('tr')).map(row => {
             return Array.from(row.querySelectorAll('td')).map(td => td.textContent);
@@ -976,10 +1333,10 @@ function downloadTableAsPDF(tableId, filename) {
         // Create PDF document
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         // Add title
         doc.text(filename.replace('.pdf', '').replace(/_/g, ' '), 14, 15);
-        
+
         // Add table using autoTable plugin
         doc.autoTable({
             head: [headers],
@@ -996,11 +1353,357 @@ function downloadTableAsPDF(tableId, filename) {
             }
         });
 
-        doc.save(filename);
+        // Only include charts when downloading the overview table
+        if (tableId === 'overviewMachineTableBody') {
+            // Add charts section title
+            const finalY = doc.previousAutoTable.finalY + 10;
+            doc.text("Machine Performance Charts", 14, finalY);
+
+            // Convert SVG charts to canvas images for PDF
+            try {
+                // Get both charts
+                const barChartSvg = document.querySelector("#machineBarChart svg");
+                const pieChartSvg = document.querySelector("#reasonPieChart svg");
+
+                if (barChartSvg && pieChartSvg) {
+                    // Use SVG data as strings
+                    const barSvgData = new XMLSerializer().serializeToString(barChartSvg);
+                    const pieSvgData = new XMLSerializer().serializeToString(pieChartSvg);
+
+                    // Create canvases for the charts
+                    const barCanvas = document.createElement('canvas');
+                    const pieCanvas = document.createElement('canvas');
+                    barCanvas.width = barChartSvg.width.baseVal.value;
+                    barCanvas.height = barChartSvg.height.baseVal.value;
+                    pieCanvas.width = pieChartSvg.width.baseVal.value;
+                    pieCanvas.height = pieChartSvg.height.baseVal.value;
+
+                    // Create image elements
+                    const barImg = document.createElement('img');
+                    const pieImg = document.createElement('img');
+
+                    // When bar chart image loads, draw to canvas and add to PDF
+                    barImg.onload = function () {
+                        const barCtx = barCanvas.getContext('2d');
+                        barCtx.drawImage(barImg, 0, 0);
+                        const barImgData = barCanvas.toDataURL('image/png');
+
+                        // Add bar chart to PDF
+                        doc.addImage(barImgData, 'PNG', 10, finalY + 10, 90, 60);
+
+                        // When pie chart image loads, draw to canvas and add to PDF
+                        pieImg.onload = function () {
+                            const pieCtx = pieCanvas.getContext('2d');
+                            pieCtx.drawImage(pieImg, 0, 0);
+                            const pieImgData = pieCanvas.toDataURL('image/png');
+
+                            // Add pie chart to PDF
+                            doc.addImage(pieImgData, 'PNG', 110, finalY + 10, 90, 60);
+
+                            // Save the PDF after all charts are added
+                            doc.save(filename);
+                        };
+
+                        // Create data URL for pie chart SVG
+                        pieImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(pieSvgData)));
+                    };
+
+                    // Create data URL for bar chart SVG
+                    barImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(barSvgData)));
+                } else {
+                    // If charts aren't available, just save the PDF with the table
+                    doc.save(filename);
+                }
+            } catch (chartError) {
+                console.error("Error adding charts to PDF:", chartError);
+                // Save the PDF without charts if there's an error
+                doc.save(filename);
+            }
+        } else {
+            // For other tables, just save without charts
+            doc.save(filename);
+        }
     } catch (error) {
         console.error("Error generating PDF:", error);
         alert("Failed to generate PDF. Please check console for details.");
     }
+}
+function renderOverviewCharts(analysis) {
+  renderMachineBarChart(analysis);
+  renderReasonPieChart(analysis);
+}
+
+function renderMachineBarChart(analysis) {
+    const machines = Object.keys(analysis.machines).sort(); // Sort machines by name
+    const data = machines.map(machine => ({
+        machine: machine,
+        downtime: analysis.machines[machine].downtime
+    }));
+
+    // Clear previous chart
+    d3.select("#machineBarChart").html("");
+
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
+    const width = document.getElementById('machineBarChart').clientWidth - margin.left - margin.right;
+    const height = 220 - margin.top - margin.bottom;
+
+    // Create tooltip div
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "rgba(0, 0, 0, 0.7)")
+        .style("color", "white")
+        .style("padding", "8px")
+        .style("border-radius", "4px")
+        .style("pointer-events", "none")
+        .style("font-size", "12px");
+
+    const svg = d3.select("#machineBarChart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Create X scale
+    const x = d3.scaleBand()
+        .domain(data.map(d => d.machine))
+        .range([0, width])
+        .padding(0.3);
+
+    // Create Y scale - seconds
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.downtime) * 1.1]) // Scale to seconds
+        .range([height, 0]);
+
+    // Add X axis
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end")
+        .style("font-size", "9px"); // Smaller font for axis labels
+
+    // Add Y axis
+    svg.append("g")
+        .call(d3.axisLeft(y).ticks(5))
+        .selectAll("text")
+        .style("font-size", "9px"); // Smaller font for axis labels
+
+    // Y axis label
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "10px") // Smaller axis title
+        .text("Seconds");
+
+    // Add bars
+    svg.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.machine))
+        .attr("width", x.bandwidth())
+        .attr("y", d => y(d.downtime)) // Use seconds for y position
+        .attr("height", d => height - y(d.downtime)) // Use seconds for height
+        .attr("fill", d => machineColors[d.machine] || "#4e79a7")
+        .on("mouseover", function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(`<strong>${d.machine}</strong><br>Downtime: ${formatSeconds(d.downtime)}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function(d) {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+
+    // Add text labels on top of bars
+    svg.selectAll(".text")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("class", "label")
+        .attr("x", d => x(d.machine) + x.bandwidth() / 2)
+        .attr("y", d => y(d.downtime) - 5) // Position above bar, using seconds
+        .attr("text-anchor", "middle")
+        .style("font-size", "8px") // Smaller label text
+        .text(d => formatSeconds(d.downtime)); // Display formatted time in seconds
+}
+
+function renderReasonPieChart(analysis) {
+    // Clear previous chart
+    d3.select("#reasonPieChart").html("");
+
+    const machineLabels = Object.keys(analysis.machines).sort();
+    const data = machineLabels.map(machine => ({
+        machine: machine,
+        events: analysis.machines[machine].events
+    }));
+
+    // If no data, show message
+    if (data.length === 0 || data.every(d => d.events === 0)) {
+        d3.select("#reasonPieChart")
+            .append("div")
+            .attr("class", "no-data-message")
+            .style("text-align", "center")
+            .style("padding-top", "80px")
+            .style("font-size", "12px") // Smaller message text
+            .text("No stop event data available");
+        return;
+    }
+
+    const width = document.getElementById('reasonPieChart').clientWidth;
+    const height = 220;
+    const radius = Math.min(width, height) / 2 - 40;
+
+    // Create tooltip div if it doesn't exist (reuse from bar chart if possible)
+    const tooltip = d3.select("body").select(".tooltip").node() ?
+        d3.select("body").select(".tooltip") :
+        d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .style("background-color", "rgba(0, 0, 0, 0.7)")
+            .style("color", "white")
+            .style("padding", "8px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px");
+
+    const svg = d3.select("#reasonPieChart")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+    // Define color palette for machines
+    const machinePieColors = d3.scaleOrdinal()
+        .domain(data.map(d => d.machine))
+        .range(defaultColors); // Use default colors or machineColors if available
+
+    // Compute pie layout with no padding between sectors
+    const pie = d3.pie()
+        .value(d => d.events)
+        .padAngle(0) // Remove gaps between sectors
+        .sort(null);
+
+    // Generate arc
+    const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+
+    // Add slices
+    const slices = svg.selectAll(".slice")
+        .data(pie(data))
+        .enter()
+        .append("g")
+        .attr("class", "slice");
+
+    slices.append("path")
+        .attr("d", arc)
+        .attr("fill", d => machinePieColors(d.data.machine))
+        .attr("stroke", "white")
+        .style("stroke-width", "1px") // Thinner stroke for cleaner look
+        .on("mouseover", function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(`<strong>${d.data.machine}</strong><br>Events: ${d.data.events}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+
+    // Add text labels on slices
+    slices.append("text")
+        .attr("transform", d => {
+            // Position text better within each slice
+            const pos = arc.centroid(d);
+            // Push text outward if slice is too small
+            const midAngle = d.startAngle + (d.endAngle - d.startAngle) / 2;
+            const x = Math.sin(midAngle) * 5;
+            const y = -Math.cos(midAngle) * 5;
+            return `translate(${pos[0] + x}, ${pos[1] + y})`;
+        })
+        .attr("dy", "0.35em")
+        .style("text-anchor", "middle")
+        .style("font-size", "9px") // Smaller label text
+        .style("font-weight", "bold")
+        .style("fill", "#ffffff") // White text for better contrast
+        .text(d => d.data.events > 0 ? d.data.events : ""); // Only show non-zero values
+
+    // Add Legend - Machine Names (more compact)
+    const legendContainer = d3.select("#reasonPieChart")
+        .append("div")
+        .attr("class", "legend")
+        .style("font-size", "10px") // Smaller legend text
+        .style("margin-top", "10px");
+
+    // Create a more compact grid layout for legend items
+    const legendGrid = legendContainer.append("div")
+        .style("display", "flex")
+        .style("flex-wrap", "wrap")
+        .style("justify-content", "center");
+
+    data.forEach(machineData => {
+        const legendItem = legendGrid.append("div")
+            .attr("class", "legend-item")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("margin", "0 6px 4px 0");
+
+        legendItem.append("div")
+            .attr("class", "legend-color")
+            .style("background-color", machinePieColors(machineData.machine))
+            .style("width", "8px")
+            .style("height", "8px")
+            .style("margin-right", "4px");
+
+        legendItem.append("div")
+            .text(machineData.machine);
+    });
+}
+
+
+// Update the existing analyzeData function by adding a call to renderOverviewCharts
+function analyzeData(machineData) {
+  try {
+    if (!machineData) {
+      machineData = window.cachedMachineData;
+      if (!machineData) {
+        console.error("No machine data available for analysis");
+        return;
+      }
+    } else {
+      window.cachedMachineData = machineData;
+    }
+
+    const selectedMachines = getSelectedCheckboxes('machine');
+    analysis = analyzeEvents(selectedMachines, machineData);
+
+    updateOverviewTab(analysis);
+    updateMachineAnalysisTab(analysis);
+    updateReasonAnalysisTab(analysis);
+
+    // Render charts with the analysis data
+    renderOverviewCharts(analysis);
+  } catch (error) {
+    handleError(error, 'Failed to analyze data');
+  }
 }
 
 
