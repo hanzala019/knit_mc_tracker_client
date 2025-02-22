@@ -344,19 +344,18 @@
   let touchEndY = 0;
   let isHorizontallyScrollable = false;
   
-  // Add touch event listeners to the tab content container
+  // Add touch event listeners
   tabContent.addEventListener('touchstart', handleTouchStart, false);
+  tabContent.addEventListener('touchmove', handleTouchMove, false);
   tabContent.addEventListener('touchend', handleTouchEnd, false);
   
-  // Check if an element has horizontal overflow and is explicitly scrollable
+  // Check if an element has horizontal overflow and is scrollable
   function isElementHorizontallyScrollable(element) {
     while (element && element !== tabContent) {
       const hasOverflow = element.scrollWidth > element.clientWidth;
       const isScrollable = window.getComputedStyle(element).overflowX === 'auto' || 
                            window.getComputedStyle(element).overflowX === 'scroll';
       if (hasOverflow && isScrollable) {
-        console.log(`Scrollable element found: ${element.tagName}.${element.className}`, 
-                    `scrollWidth: ${element.scrollWidth}, clientWidth: ${element.clientWidth}`);
         return true;
       }
       element = element.parentElement;
@@ -367,25 +366,54 @@
   function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
-    
     const targetElement = document.elementFromPoint(touchStartX, touchStartY);
     isHorizontallyScrollable = targetElement ? isElementHorizontallyScrollable(targetElement) : false;
-    console.log('Touch start - X:', touchStartX, 'Y:', touchStartY, 
-                'Target:', targetElement ? targetElement.tagName : 'null', 
-                'Scrollable:', isHorizontallyScrollable);
+    
+    // Prepare all tabs for potential sliding
+    tabPanes.forEach(pane => {
+      pane.style.transition = 'none'; // Disable transition during move
+      pane.style.transform = pane.classList.contains('active') ? 'translateX(0)' : 'translateX(100%)';
+    });
+  }
+  
+  function handleTouchMove(event) {
+    if (isHorizontallyScrollable) return;
+    
+    const moveX = event.touches[0].clientX - touchStartX;
+    const moveY = event.touches[0].clientY - touchStartY;
+    
+    // Prevent default only for significant horizontal movement
+    if (Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 20) {
+      e.preventDefault();
+      
+      const activeTab = document.querySelector('.tab-pane.show.active');
+      const currentIndex = tabIds.indexOf(activeTab.id);
+      const direction = moveX > 0 ? -1 : 1; // Right swipe: -1, Left swipe: 1
+      const nextIndex = currentIndex + direction;
+      
+      if (nextIndex >= 0 && nextIndex < tabIds.length) {
+        const currentPane = activeTab;
+        const nextPane = document.getElementById(tabIds[nextIndex]);
+        
+        // Calculate percentage of swipe
+        const swipePercentage = Math.min(Math.abs(moveX) / tabContent.clientWidth, 1);
+        const translateCurrent = moveX > 0 ? -swipePercentage * 100 : swipePercentage * 100;
+        const translateNext = moveX > 0 ? (1 - swipePercentage) * 100 : -(1 - swipePercentage) * 100;
+        
+        // Show both tabs partially
+        currentPane.style.transform = `translateX(${translateCurrent}%)`;
+        nextPane.style.transform = `translateX(${translateNext}%)`;
+        nextPane.style.display = 'block'; // Make next tab visible
+      }
+    }
   }
   
   function handleTouchEnd(event) {
     touchEndX = event.changedTouches[0].clientX;
     touchEndY = event.changedTouches[0].clientY;
-    console.log('Touch end - X:', touchEndX, 'Y:', touchEndY, 
-                'Swipe attempted, Scrollable:', isHorizontallyScrollable);
-    handleSwipe();
-  }
-  
-  function handleSwipe() {
+    
     if (isHorizontallyScrollable) {
-      console.log('Swipe blocked due to horizontal scrollable element');
+      resetTabPositions();
       return;
     }
     
@@ -394,27 +422,26 @@
     const minSwipeDistance = 50;
     const maxVerticalMovement = 30;
     
-    console.log('Swipe distances - X:', swipeDistanceX, 'Y:', swipeDistanceY);
+    const activeTab = document.querySelector('.tab-pane.show.active');
+    const currentIndex = tabIds.indexOf(activeTab.id);
+    
+    // Enable smooth transition for final animation
+    tabPanes.forEach(pane => {
+      pane.style.transition = 'transform 0.3s ease-in-out';
+    });
     
     if (Math.abs(swipeDistanceX) > minSwipeDistance && Math.abs(swipeDistanceY) < maxVerticalMovement) {
-      const activeTab = document.querySelector('.tab-pane.show.active');
-      const currentIndex = tabIds.indexOf(activeTab.id);
-      
-      if (swipeDistanceX > 0) {
+      if (swipeDistanceX > 0 && currentIndex > 0) {
         // Swipe right - previous tab
-        if (currentIndex > 0) {
-          console.log('Swiping right to:', tabIds[currentIndex - 1]);
-          navigateToTab(tabIds[currentIndex - 1]);
-        }
-      } else {
+        navigateToTab(tabIds[currentIndex - 1]);
+      } else if (swipeDistanceX < 0 && currentIndex < tabIds.length - 1) {
         // Swipe left - next tab
-        if (currentIndex < tabIds.length - 1) {
-          console.log('Swiping left to:', tabIds[currentIndex + 1]);
-          navigateToTab(tabIds[currentIndex + 1]);
-        }
+        navigateToTab(tabIds[currentIndex + 1]);
+      } else {
+        resetTabPositions();
       }
     } else {
-      console.log('Swipe not significant enough or too vertical');
+      resetTabPositions();
     }
   }
   
@@ -423,32 +450,75 @@
                    document.querySelector(`[href="#${tabId}"]`);
     
     if (tabLink) {
-      if (typeof bootstrap !== 'undefined') {
-        const tab = new bootstrap.Tab(tabLink);
-        tab.show();
-      } else {
-        tabPanes.forEach(pane => {
-          pane.classList.remove('show', 'active');
-        });
-        document.querySelectorAll('[data-bs-toggle="tab"], [data-toggle="tab"]').forEach(link => {
-          link.classList.remove('active');
-          link.setAttribute('aria-selected', 'false');
-        });
-        document.getElementById(tabId).classList.add('show', 'active');
-        tabLink.classList.add('active');
-        tabLink.setAttribute('aria-selected', 'true');
+      const nextPane = document.getElementById(tabId);
+      const activePane = document.querySelector('.tab-pane.show.active');
+      
+      // Animate transition
+      if (activePane.id !== tabId) {
+        const direction = tabIds.indexOf(tabId) > tabIds.indexOf(activePane.id) ? -1 : 1;
+        activePane.style.transform = `translateX(${direction * 100}%)`;
+        nextPane.style.transform = 'translateX(0)';
+        nextPane.style.display = 'block';
+        
+        // Complete Bootstrap tab switch after animation
+        setTimeout(() => {
+          if (typeof bootstrap !== 'undefined') {
+            const tab = new bootstrap.Tab(tabLink);
+            tab.show();
+          } else {
+            tabPanes.forEach(pane => {
+              pane.classList.remove('show', 'active');
+            });
+            document.querySelectorAll('[data-bs-toggle="tab"], [data-toggle="tab"]').forEach(link => {
+              link.classList.remove('active');
+              link.setAttribute('aria-selected', 'false');
+            });
+            nextPane.classList.add('show', 'active');
+            tabLink.classList.add('active');
+            tabLink.setAttribute('aria-selected', 'true');
+          }
+          resetTabPositions(false); // Reset without animation
+        }, 300); // Match CSS transition duration
       }
     }
   }
   
-  tabContent.addEventListener('touchmove', function(e) {
-    const moveX = e.touches[0].clientX - touchStartX;
-    const moveY = e.touches[0].clientY - touchStartY;
-    if (!isHorizontallyScrollable && Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 20) {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  // Reset tab positions
+  function resetTabPositions(animate = true) {
+    tabPanes.forEach(pane => {
+      pane.style.transition = animate ? 'transform 0.3s ease-in-out' : 'none';
+      pane.style.transform = pane.classList.contains('active') ? 'translateX(0)' : 'translateX(100%)';
+      if (!pane.classList.contains('active')) {
+        setTimeout(() => {
+          pane.style.display = 'none';
+        }, animate ? 300 : 0);
+      }
+    });
+  }
 });
+
+// CSS to support animations
+const style = document.createElement('style');
+style.textContent = `
+  .tab-pane {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: none;
+    will-change: transform; /* Optimize performance */
+  }
+  .tab-pane.show.active {
+    display: block;
+    position: relative;
+  }
+  #analyticsTabContent {
+    position: relative;
+    overflow: hidden; /* Contain sliding tabs */
+  }
+`;
+document.head.appendChild(style);
 
                 // Initialize navigation
                 document.addEventListener("DOMContentLoaded", () => {
@@ -466,7 +536,7 @@
             result: []
         };
         let machineViews = {};
-        const api =  "https://knit-mc-tracker-server.onrender.com"
+        const api =   "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = [
