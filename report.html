@@ -331,6 +331,105 @@
     </div>
 
     <script>
+            
+            // Add touch swipe functionality for tab navigation
+document.addEventListener('DOMContentLoaded', function() {
+  const tabContent = document.getElementById('analyticsTabContent');
+  const tabPanes = Array.from(document.querySelectorAll('.tab-pane'));
+  const tabIds = tabPanes.map(pane => pane.id);
+  
+  // Variables to track touch events
+  let touchStartX = 0;
+  let touchEndX = 0;
+  
+  // Add touch event listeners to the tab content container
+  tabContent.addEventListener('touchstart', handleTouchStart, false);
+  tabContent.addEventListener('touchend', handleTouchEnd, false);
+  
+  function handleTouchStart(event) {
+    touchStartX = event.touches[0].clientX;
+  }
+  
+  function handleTouchEnd(event) {
+    touchEndX = event.changedTouches[0].clientX;
+    handleSwipe();
+  }
+  
+  function handleSwipe() {
+    // Calculate swipe distance
+    const swipeDistance = touchEndX - touchStartX;
+    const minSwipeDistance = 50; // Minimum distance to register as a swipe
+    
+    if (Math.abs(swipeDistance) < minSwipeDistance) {
+      // Not a significant swipe
+      return;
+    }
+    
+    // Find the currently active tab
+    const activeTab = document.querySelector('.tab-pane.show.active');
+    const currentIndex = tabIds.indexOf(activeTab.id);
+    
+    if (swipeDistance > 0) {
+      // Swipe right - go to previous tab
+      if (currentIndex > 0) {
+        navigateToTab(tabIds[currentIndex - 1]);
+      }
+    } else {
+      // Swipe left - go to next tab
+      if (currentIndex < tabIds.length - 1) {
+        navigateToTab(tabIds[currentIndex + 1]);
+      }
+    }
+  }
+  
+  function navigateToTab(tabId) {
+    // Find the corresponding nav tab and click it
+    const tabLink = document.querySelector(`[data-bs-target="#${tabId}"]`) || 
+                   document.querySelector(`[href="#${tabId}"]`);
+    
+    if (tabLink) {
+      // If using Bootstrap 5
+      if (typeof bootstrap !== 'undefined') {
+        const tab = new bootstrap.Tab(tabLink);
+        tab.show();
+      } else {
+        // Manual tab activation
+        // Hide all tab panes
+        tabPanes.forEach(pane => {
+          pane.classList.remove('show', 'active');
+        });
+        
+        // Deactivate all nav links
+        document.querySelectorAll('[data-bs-toggle="tab"], [data-toggle="tab"]').forEach(link => {
+          link.classList.remove('active');
+          link.setAttribute('aria-selected', 'false');
+        });
+        
+        // Show the selected tab
+        document.getElementById(tabId).classList.add('show', 'active');
+        
+        // Activate the nav link
+        tabLink.classList.add('active');
+        tabLink.setAttribute('aria-selected', 'true');
+      }
+    }
+  }
+  
+  // Add visual feedback for touch events
+  tabContent.addEventListener('touchmove', function(e) {
+    // Prevent scrolling when swiping horizontally
+    if (Math.abs(e.touches[0].clientX - touchStartX) > Math.abs(e.touches[0].clientY - touchStartY)) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // Additional variable for y-direction to determine if scroll or swipe
+  let touchStartY = 0;
+  tabContent.addEventListener('touchstart', function(e) {
+    touchStartY = e.touches[0].clientY;
+  }, false);
+});
+
 
                 // Initialize navigation
                 document.addEventListener("DOMContentLoaded", () => {
@@ -347,7 +446,8 @@
             machines: [],
             result: []
         };
-        const api =  "https://knit-mc-tracker-server.onrender.com"
+        let machineViews = {};
+        const api = "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = [
@@ -415,7 +515,19 @@
 
             return result.join(' ');
         }
-
+        function setMachineView(machine, view) {
+    machineViews[machine] = view;
+    const btnGroupElement = d3.select(`#machine-${machine}-scatter`).node().parentNode.querySelector('.view-controls .btn-group');
+    const btnGroup = d3.select(btnGroupElement); // Convert DOM element to D3 selection
+    btnGroup.selectAll('.btn').classed('active', function() {
+        return this.textContent === view;
+    });
+    const machineEvents = window.cachedMachineData.find(m => m.machine === machine).result;
+    d3.select(`#machine-${machine}-scatter`).html("");
+    d3.select(`#machine-${machine}-histogram`).html("");
+    renderMachineScatterPlot(machine, machineEvents, view);
+    renderMachineStackedHistogram(machine, machineEvents, view);
+}
         // --- Data Fetching ---
         async function fetchData() {
             try {
@@ -887,13 +999,11 @@
         function updateMachineAnalysisTab(analysis) {
             updateMachineAnalysisTables(analysis);
         }
-
         function updateMachineAnalysisTables(analysis) {
     const machineAnalysisTablesContainer = document.getElementById('machineAnalysisTables');
     machineAnalysisTablesContainer.innerHTML = ''; // Clear existing tables
 
     const machineLabels = Object.keys(analysis.machines);
-    // Remove "Total" from static reasons list since we'll calculate it separately
     let allReasons = ["Maintenance", "Needle Breakage", "No Order / No Program", "No Yarn", "Power", "Program Change", "Roll Cutting", "Yarn Breakage", "N/A"];
 
     // Download All Button Container
@@ -912,7 +1022,7 @@
         const machineEvents = window.cachedMachineData.find(m => m.machine === machine)?.result || [];
 
         const card = document.createElement('div');
-        card.className = 'col-md-12 mb-4'; // Make each table take full width
+        card.className = 'col-md-12 mb-4';
         card.innerHTML = `
             <div class="card">
                 <div class="card-header">
@@ -942,22 +1052,26 @@
                             </div>
                         </div>
                         <div class="col-md-5">
+                            <div class="view-controls mb-2">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary active" data-view="AM" data-machine="${machine}">AM</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" data-view="PM" data-machine="${machine}">PM</button>
+                                </div>
+                            </div>
                             <div id="machine-${machine}-scatter" class="scatter-plot" style="height: 250px;"></div>
+                            <div id="machine-${machine}-histogram" class="histogram-plot" style="height: 250px; margin-top: 20px;"></div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
         machineAnalysisTablesContainer.appendChild(card);
-        
-        // Populate table with regular reasons
+
+        // Populate table (unchanged)
         const tableBody = d3.select(`#machine-${machine}-reason-body`);
-        
-        // Initialize totals
         let totalEvents = 0;
         let totalDowntime = 0;
-        
-        // Add rows for each reason
+
         const tableRows = tableBody.selectAll('tr.reason-row')
             .data(allReasons)
             .enter()
@@ -970,7 +1084,6 @@
             const avgReasonDowntime = reasonEvents > 0 ? (reasonDowntime / reasonEvents) : 0;
             const nptReasonPercentage = ((reasonDowntime / (analysis.totalHours)) * 100).toFixed(2);
 
-            // Update totals
             totalEvents += reasonEvents;
             totalDowntime += reasonDowntime;
 
@@ -980,11 +1093,10 @@
             d3.select(this).append('td').text(formatSeconds(reasonDowntime));
             d3.select(this).append('td').text(nptReasonPercentage + "%");
         });
-        
-        // Calculate and add the total row
+
         const totalAvgDowntime = totalEvents > 0 ? (totalDowntime / totalEvents) : 0;
         const totalNptPercentage = ((totalDowntime / (analysis.totalHours)) * 100).toFixed(2);
-        
+
         const totalRow = tableBody.append('tr')
             .attr('class', 'total-row font-weight-bold')
             .style('background-color', '#f8f9fa');
@@ -994,45 +1106,185 @@
         totalRow.append('td').text(formatSeconds(totalAvgDowntime)).style('font-weight', 'bold');
         totalRow.append('td').text(formatSeconds(totalDowntime)).style('font-weight', 'bold');
         totalRow.append('td').text(totalNptPercentage + "%").style('font-weight', 'bold');
-        
-        // Render scatter plot for this machine
-        renderMachineScatterPlot(machine, machineEvents);
+
+        // Attach event listeners to AM/PM buttons
+        const buttons = card.querySelectorAll('.view-controls .btn-group .btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                const view = this.getAttribute('data-view');
+                const machine = this.getAttribute('data-machine');
+                setMachineView(machine, view);
+            });
+        });
+
+        // Initialize views and render plots
+        machineViews[machine] = 'AM'; // Default to AM
+        renderMachineScatterPlot(machine, machineEvents, 'AM');
+        renderMachineStackedHistogram(machine, machineEvents, 'AM');
     });
 }
 
-function renderMachineScatterPlot(machine, machineEvents) {
-    // Filter and prepare data
-    console.log(machineEvents)
+function renderMachineStackedHistogram(machine, machineEvents, view) {
+    d3.select(`#machine-${machine}-histogram`).html("");
+
+    const hourRange = view === 'AM' ? d3.range(0, 12) : d3.range(12, 24);
+    const hourlyData = hourRange.map(hour => {
+        const reasons = {};
+        machineEvents.forEach(event => {
+            if (event[2] && event[4]) {
+                const startTime = new Date(event[2]);
+                const eventHour = startTime.getUTCHours();
+                if (eventHour === hour) {
+                    const reason = event[6] || 'N/A';
+                    const downtime = event[4];
+                    reasons[reason] = (reasons[reason] || 0) + downtime;
+                }
+            }
+        });
+        return { hour, ...reasons };
+    });
+
+    const reasons = [...new Set(machineEvents.map(e => e[6] || 'N/A'))];
+    const stack = d3.stack()
+        .keys(reasons)
+        .value((d, key) => d[key] || 0);
+    const stackedData = stack(hourlyData);
+
+    const margin = { top: 20, right: 30, bottom: 50, left: 50 }; // Reverted bottom margin since no legend
+    const width = document.getElementById(`machine-${machine}-histogram`).clientWidth - margin.left - margin.right;
+    const height = 250 - margin.top - margin.bottom;
+
+    const svg = d3.select(`#machine-${machine}-histogram`)
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom) // No extra height needed
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleBand()
+        .domain(hourlyData.map(d => formatHour(d.hour)))
+        .range([0, width])
+        .padding(0.1);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(stackedData, layer => d3.max(layer, d => d[1])) * 1.1])
+        .range([height, 0]);
+
+    const color = d3.scaleOrdinal()
+        .domain(reasons)
+        .range(defaultColors);
+
+    const tooltip = d3.select("body").select(".tooltip").node() ?
+        d3.select("body").select(".tooltip") :
+        d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0)
+            .style("position", "absolute")
+            .style("background-color", "rgba(0, 0, 0, 0.7)")
+            .style("color", "white")
+            .style("padding", "8px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px");
+
+    svg.selectAll(".layer")
+        .data(stackedData)
+        .enter()
+        .append("g")
+        .attr("class", "layer")
+        .attr("fill", d => color(d.key))
+        .selectAll("rect")
+        .data(d => d)
+        .enter()
+        .append("rect")
+        .attr("x", d => x(formatHour(d.data.hour)))
+        .attr("y", d => y(d[1]))
+        .attr("height", d => y(d[0]) - y(d[1]))
+        .attr("width", x.bandwidth())
+        .on("mouseover", function(event, d) {
+            tooltip.transition().duration(200).style("opacity", 0.9);
+            const reason = d3.select(this.parentNode).datum().key;
+            const downtime = d[1] - d[0];
+            tooltip.html(`<strong>Hour:</strong> ${formatHour(d.data.hour)}<br><strong>Reason:</strong> ${reason}<br><strong>Downtime:</strong> ${formatSeconds(downtime)}`)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition().duration(500).style("opacity", 0);
+        });
+
+    svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-0.8em")
+        .attr("dy", "0.15em")
+        .attr("transform", "rotate(-45)");
+
+    svg.append("g")
+        .call(d3.axisLeft(y).ticks(5))
+        .selectAll("text")
+        .style("font-size", "9px")
+
+    svg.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .style("font-size", "10px")
+        .text("Downtime (seconds)");
+}
+
+function formatHour(hour) {
+    const h = hour % 12 || 12;
+    const period = hour < 12 ? 'AM' : 'PM';
+    return `${h} ${period}`;
+}
+
+
+function renderMachineScatterPlot(machine, machineEvents, view) {
+    // Clear previous content
+    d3.select(`#machine-${machine}-scatter`).html("");
+
+    // Filter data based on view (AM: 0-11, PM: 12-23)
+    const hourRange = view === 'AM' ? [0, 11] : [12, 23];
     const scatterData = machineEvents
-        .filter(event => event[2] && event[3]) // Ensure we have timestamp and duration
+        .filter(event => {
+            if (!event[2] || !event[3]) return false;
+            const startTime = new Date(event[2]);
+            const hour = startTime.getUTCHours();
+            return hour >= hourRange[0] && hour <= hourRange[1];
+        })
         .map(event => {
             const startTime = new Date(event[2]);
-            const hour = startTime.getUTCHours() + (startTime.getMinutes() / 60);
-            const duration = event[4] 
+            const hour = startTime.getUTCHours() % 12 || 12; // Convert to 12-hour
+            const period = startTime.getUTCHours() < 12 ? 'AM' : 'PM';
+            const duration = event[4];
             const reason = event[6] || 'N/A';
             return {
-                hour,
+                hour: `${hour} ${period}`,
+                rawHour: startTime.getUTCHours() + (startTime.getUTCMinutes() / 60), // For positioning
                 duration,
                 reason,
                 formattedTime: formatDateTime(startTime),
                 formattedDuration: formatSeconds(event[4])
             };
         });
-        console.log(scatterData)
-    
+
     if (scatterData.length === 0) {
         d3.select(`#machine-${machine}-scatter`)
             .append("div")
             .style("text-align", "center")
             .style("padding-top", "100px")
-            .text("No event data available for scatter plot");
+            .text("No event data available for this period");
         return;
     }
-    
+
     const margin = { top: 20, right: 30, bottom: 50, left: 50 };
     const width = document.getElementById(`machine-${machine}-scatter`).clientWidth - margin.left - margin.right;
     const height = 250 - margin.top - margin.bottom;
-    
+
     // Create tooltip
     const tooltip = d3.select("body").select(".tooltip").node() ?
         d3.select("body").select(".tooltip") :
@@ -1046,7 +1298,7 @@ function renderMachineScatterPlot(machine, machineEvents) {
             .style("border-radius", "4px")
             .style("pointer-events", "none")
             .style("font-size", "12px");
-    
+
     // Create SVG
     const svg = d3.select(`#machine-${machine}-scatter`)
         .append("svg")
@@ -1054,45 +1306,47 @@ function renderMachineScatterPlot(machine, machineEvents) {
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
-    
+
     // Define scales
     const x = d3.scaleLinear()
-        .domain([0, 24])
+        .domain([view === 'AM' ? 0 : 12, view === 'AM' ? 12 : 24])
         .range([0, width]);
-    
+
     const y = d3.scaleLinear()
         .domain([0, d3.max(scatterData, d => d.duration) * 1.1])
         .range([height, 0]);
-    
-    // Define color scale for reasons
+
     const reasonSet = new Set(scatterData.map(d => d.reason));
     const colors = d3.scaleOrdinal()
         .domain(Array.from(reasonSet))
         .range(defaultColors);
-    
-    // Add X axis
+
+    // Add X axis with 12-hour format
     svg.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(x)
-            .tickFormat(d => `${d}:00`)
+            .tickFormat(d => {
+                const h = d % 12 || 12;
+                return `${h} ${view}`;
+            })
             .ticks(6))
         .selectAll("text")
         .style("font-size", "9px");
-    
+
     // Add Y axis
     svg.append("g")
         .call(d3.axisLeft(y).ticks(5))
         .selectAll("text")
         .style("font-size", "9px");
-    
+
     // Add axis labels
     svg.append("text")
         .attr("text-anchor", "middle")
         .attr("x", width / 2)
         .attr("y", height + margin.bottom - 5)
         .style("font-size", "10px")
-        .text("Time of Day (hours)");
-    
+        .text(`Time of Day (${view})`);
+
     svg.append("text")
         .attr("text-anchor", "middle")
         .attr("transform", "rotate(-90)")
@@ -1100,7 +1354,7 @@ function renderMachineScatterPlot(machine, machineEvents) {
         .attr("x", -height / 2)
         .style("font-size", "10px")
         .text("Duration (seconds)");
-    
+
     // Add title
     svg.append("text")
         .attr("x", width / 2)
@@ -1108,15 +1362,15 @@ function renderMachineScatterPlot(machine, machineEvents) {
         .attr("text-anchor", "middle")
         .style("font-size", "12px")
         .style("font-weight", "bold")
-        .text(`${machine} Downtime Events`);
-    
+        .text(`${machine} Downtime Events (${view})`);
+
     // Add dots
     svg.selectAll(".dot")
         .data(scatterData)
         .enter()
         .append("circle")
         .attr("class", "dot")
-        .attr("cx", d => x(d.hour))
+        .attr("cx", d => x(d.rawHour))
         .attr("cy", d => y(d.duration))
         .attr("r", 4)
         .style("fill", d => colors(d.reason))
@@ -1152,8 +1406,8 @@ function renderMachineScatterPlot(machine, machineEvents) {
                 .duration(500)
                 .style("opacity", 0);
         });
-    
-    // Add legend if we have multiple reasons
+
+    // Add legend (unchanged)
     if (reasonSet.size > 1) {
         const legendContainer = d3.select(`#machine-${machine}-scatter`)
             .append("div")
