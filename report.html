@@ -422,6 +422,10 @@
     
     if (isHorizontallyScrollable) {
       resetTabPositions();
+ 
+        currentPane.classList.remove('swipe-left', 'swipe-right');
+        nextPane.classList.remove('swipe-left', 'swipe-right');
+
       return;
     }
     
@@ -525,6 +529,13 @@ style.textContent = `
     position: relative;
     overflow: hidden; /* Contain sliding tabs */
   }
+    .swipe-left {
+  box-shadow: -5px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.swipe-right {
+  box-shadow: 5px 0 5px rgba(0, 0, 0, 0.2);
+}
 `;
 document.head.appendChild(style);
 
