@@ -405,6 +405,14 @@
         nextPane.style.transform = `translateX(${translateNext}%)`;
         nextPane.style.display = 'block'; // Make next tab visible
       }
+      if (Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 20) {
+        // Determine the swipe direction
+        const directionClass = moveX > 0 ? 'swipe-right' : 'swipe-left';
+
+        // Add the direction class to the current and next tab panes
+        currentPane.classList.add(directionClass);
+        nextPane.classList.add(directionClass);
+      }
     }
   }
   
