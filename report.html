@@ -332,8 +332,7 @@
 
     <script>
             
-            // Add touch swipe functionality for tab navigation
-document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function() {
   const tabContent = document.getElementById('analyticsTabContent');
   const tabPanes = Array.from(document.querySelectorAll('.tab-pane'));
   const tabIds = tabPanes.map(pane => pane.id);
@@ -341,95 +340,109 @@ document.addEventListener('DOMContentLoaded', function() {
   // Variables to track touch events
   let touchStartX = 0;
   let touchEndX = 0;
+  let touchStartY = 0;
+  let touchEndY = 0;
+  let isHorizontallyScrollable = false; // Flag to track if touch starts on a scrollable element
   
   // Add touch event listeners to the tab content container
   tabContent.addEventListener('touchstart', handleTouchStart, false);
   tabContent.addEventListener('touchend', handleTouchEnd, false);
   
-  function handleTouchStart(event) {
-    touchStartX = event.touches[0].clientX;
+  // Check if an element or its parents are horizontally scrollable
+  function isElementHorizontallyScrollable(element) {
+    while (element && element !== tabContent) {
+      if (element.scrollWidth > element.clientWidth) {
+        return true; // Found a horizontally scrollable element
+      }
+      element = element.parentElement;
+    }
+    return false;
   }
   
+  // Capture starting touch coordinates and check for scrollable elements
+  function handleTouchStart(event) {
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+    
+    // Get the element under the touch point
+    const targetElement = document.elementFromPoint(touchStartX, touchStartY);
+    isHorizontallyScrollable = targetElement ? isElementHorizontallyScrollable(targetElement) : false;
+  }
+  
+  // Capture ending touch coordinates and handle swipe
   function handleTouchEnd(event) {
     touchEndX = event.changedTouches[0].clientX;
+    touchEndY = event.changedTouches[0].clientY;
     handleSwipe();
   }
   
+  // Determine if the gesture should change tabs
   function handleSwipe() {
-    // Calculate swipe distance
-    const swipeDistance = touchEndX - touchStartX;
-    const minSwipeDistance = 50; // Minimum distance to register as a swipe
-    
-    if (Math.abs(swipeDistance) < minSwipeDistance) {
-      // Not a significant swipe
+    // If the touch started on a horizontally scrollable element, do nothing (allow scrolling)
+    if (isHorizontallyScrollable) {
       return;
     }
     
-    // Find the currently active tab
-    const activeTab = document.querySelector('.tab-pane.show.active');
-    const currentIndex = tabIds.indexOf(activeTab.id);
+    const swipeDistanceX = touchEndX - touchStartX; // Horizontal distance
+    const swipeDistanceY = touchEndY - touchStartY; // Vertical distance
+    const minSwipeDistance = 50; // Minimum horizontal distance for a tab swipe
+    const maxVerticalMovement = 30; // Maximum vertical movement for a tab swipe
     
-    if (swipeDistance > 0) {
-      // Swipe right - go to previous tab
-      if (currentIndex > 0) {
-        navigateToTab(tabIds[currentIndex - 1]);
-      }
-    } else {
-      // Swipe left - go to next tab
-      if (currentIndex < tabIds.length - 1) {
-        navigateToTab(tabIds[currentIndex + 1]);
+    // Only trigger tab change if horizontal movement is significant and vertical movement is minimal
+    if (Math.abs(swipeDistanceX) > minSwipeDistance && Math.abs(swipeDistanceY) < maxVerticalMovement) {
+      const activeTab = document.querySelector('.tab-pane.show.active');
+      const currentIndex = tabIds.indexOf(activeTab.id);
+      
+      if (swipeDistanceX > 0) {
+        // Swipe right - go to previous tab
+        if (currentIndex > 0) {
+          navigateToTab(tabIds[currentIndex - 1]);
+        }
+      } else {
+        // Swipe left - go to next tab
+        if (currentIndex < tabIds.length - 1) {
+          navigateToTab(tabIds[currentIndex + 1]);
+        }
       }
     }
   }
   
+  // Navigate to the specified tab
   function navigateToTab(tabId) {
-    // Find the corresponding nav tab and click it
     const tabLink = document.querySelector(`[data-bs-target="#${tabId}"]`) || 
                    document.querySelector(`[href="#${tabId}"]`);
     
     if (tabLink) {
-      // If using Bootstrap 5
       if (typeof bootstrap !== 'undefined') {
+        // Using Bootstrap 5
         const tab = new bootstrap.Tab(tabLink);
         tab.show();
       } else {
         // Manual tab activation
-        // Hide all tab panes
         tabPanes.forEach(pane => {
           pane.classList.remove('show', 'active');
         });
-        
-        // Deactivate all nav links
         document.querySelectorAll('[data-bs-toggle="tab"], [data-toggle="tab"]').forEach(link => {
           link.classList.remove('active');
           link.setAttribute('aria-selected', 'false');
         });
-        
-        // Show the selected tab
         document.getElementById(tabId).classList.add('show', 'active');
-        
-        // Activate the nav link
         tabLink.classList.add('active');
         tabLink.setAttribute('aria-selected', 'true');
       }
     }
   }
   
-  // Add visual feedback for touch events
+  // Handle touch movement to prevent unwanted scrolling
   tabContent.addEventListener('touchmove', function(e) {
-    // Prevent scrolling when swiping horizontally
-    if (Math.abs(e.touches[0].clientX - touchStartX) > Math.abs(e.touches[0].clientY - touchStartY)) {
+    const moveX = e.touches[0].clientX - touchStartX;
+    const moveY = e.touches[0].clientY - touchStartY;
+    // Only prevent default scrolling if horizontal movement dominates significantly and not scrollable
+    if (!isHorizontallyScrollable && Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 20) {
       e.preventDefault();
     }
   }, { passive: false });
-  
-  // Additional variable for y-direction to determine if scroll or swipe
-  let touchStartY = 0;
-  tabContent.addEventListener('touchstart', function(e) {
-    touchStartY = e.touches[0].clientY;
-  }, false);
 });
-
 
                 // Initialize navigation
                 document.addEventListener("DOMContentLoaded", () => {
@@ -447,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
             result: []
         };
         let machineViews = {};
-        const api = "https://knit-mc-tracker-server.onrender.com"
+        const api =  "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = [
