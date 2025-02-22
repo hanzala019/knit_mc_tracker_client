@@ -342,83 +342,91 @@
   let touchEndX = 0;
   let touchStartY = 0;
   let touchEndY = 0;
-  let isHorizontallyScrollable = false; // Flag to track if touch starts on a scrollable element
+  let isHorizontallyScrollable = false;
   
   // Add touch event listeners to the tab content container
   tabContent.addEventListener('touchstart', handleTouchStart, false);
   tabContent.addEventListener('touchend', handleTouchEnd, false);
   
-  // Check if an element or its parents are horizontally scrollable
+  // Check if an element has horizontal overflow and is explicitly scrollable
   function isElementHorizontallyScrollable(element) {
     while (element && element !== tabContent) {
-      if (element.scrollWidth > element.clientWidth) {
-        return true; // Found a horizontally scrollable element
+      const hasOverflow = element.scrollWidth > element.clientWidth;
+      const isScrollable = window.getComputedStyle(element).overflowX === 'auto' || 
+                           window.getComputedStyle(element).overflowX === 'scroll';
+      if (hasOverflow && isScrollable) {
+        console.log(`Scrollable element found: ${element.tagName}.${element.className}`, 
+                    `scrollWidth: ${element.scrollWidth}, clientWidth: ${element.clientWidth}`);
+        return true;
       }
       element = element.parentElement;
     }
     return false;
   }
   
-  // Capture starting touch coordinates and check for scrollable elements
   function handleTouchStart(event) {
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
     
-    // Get the element under the touch point
     const targetElement = document.elementFromPoint(touchStartX, touchStartY);
     isHorizontallyScrollable = targetElement ? isElementHorizontallyScrollable(targetElement) : false;
+    console.log('Touch start - X:', touchStartX, 'Y:', touchStartY, 
+                'Target:', targetElement ? targetElement.tagName : 'null', 
+                'Scrollable:', isHorizontallyScrollable);
   }
   
-  // Capture ending touch coordinates and handle swipe
   function handleTouchEnd(event) {
     touchEndX = event.changedTouches[0].clientX;
     touchEndY = event.changedTouches[0].clientY;
+    console.log('Touch end - X:', touchEndX, 'Y:', touchEndY, 
+                'Swipe attempted, Scrollable:', isHorizontallyScrollable);
     handleSwipe();
   }
   
-  // Determine if the gesture should change tabs
   function handleSwipe() {
-    // If the touch started on a horizontally scrollable element, do nothing (allow scrolling)
     if (isHorizontallyScrollable) {
+      console.log('Swipe blocked due to horizontal scrollable element');
       return;
     }
     
-    const swipeDistanceX = touchEndX - touchStartX; // Horizontal distance
-    const swipeDistanceY = touchEndY - touchStartY; // Vertical distance
-    const minSwipeDistance = 50; // Minimum horizontal distance for a tab swipe
-    const maxVerticalMovement = 30; // Maximum vertical movement for a tab swipe
+    const swipeDistanceX = touchEndX - touchStartX;
+    const swipeDistanceY = touchEndY - touchStartY;
+    const minSwipeDistance = 50;
+    const maxVerticalMovement = 30;
     
-    // Only trigger tab change if horizontal movement is significant and vertical movement is minimal
+    console.log('Swipe distances - X:', swipeDistanceX, 'Y:', swipeDistanceY);
+    
     if (Math.abs(swipeDistanceX) > minSwipeDistance && Math.abs(swipeDistanceY) < maxVerticalMovement) {
       const activeTab = document.querySelector('.tab-pane.show.active');
       const currentIndex = tabIds.indexOf(activeTab.id);
       
       if (swipeDistanceX > 0) {
-        // Swipe right - go to previous tab
+        // Swipe right - previous tab
         if (currentIndex > 0) {
+          console.log('Swiping right to:', tabIds[currentIndex - 1]);
           navigateToTab(tabIds[currentIndex - 1]);
         }
       } else {
-        // Swipe left - go to next tab
+        // Swipe left - next tab
         if (currentIndex < tabIds.length - 1) {
+          console.log('Swiping left to:', tabIds[currentIndex + 1]);
           navigateToTab(tabIds[currentIndex + 1]);
         }
       }
+    } else {
+      console.log('Swipe not significant enough or too vertical');
     }
   }
   
-  // Navigate to the specified tab
   function navigateToTab(tabId) {
     const tabLink = document.querySelector(`[data-bs-target="#${tabId}"]`) || 
                    document.querySelector(`[href="#${tabId}"]`);
     
     if (tabLink) {
       if (typeof bootstrap !== 'undefined') {
-        // Using Bootstrap 5
         const tab = new bootstrap.Tab(tabLink);
         tab.show();
       } else {
-        // Manual tab activation
         tabPanes.forEach(pane => {
           pane.classList.remove('show', 'active');
         });
@@ -433,11 +441,9 @@
     }
   }
   
-  // Handle touch movement to prevent unwanted scrolling
   tabContent.addEventListener('touchmove', function(e) {
     const moveX = e.touches[0].clientX - touchStartX;
     const moveY = e.touches[0].clientY - touchStartY;
-    // Only prevent default scrolling if horizontal movement dominates significantly and not scrollable
     if (!isHorizontallyScrollable && Math.abs(moveX) > Math.abs(moveY) && Math.abs(moveX) > 20) {
       e.preventDefault();
     }
