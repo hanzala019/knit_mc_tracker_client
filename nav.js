@@ -12,26 +12,26 @@ function updateNavigation() {
         
         user = JSON.parse(user)
     }
-    // First remove any existing Users link to avoid duplicates
-    const existingUsersLink = navbar.querySelector('[href="./users.html"]');
-    if (existingUsersLink) {
-        existingUsersLink.remove();
-    }
+    // // First remove any existing Users link to avoid duplicates
+    // const existingUsersLink = navbar.querySelector('[href="./users.html"]');
+    // if (existingUsersLink) {
+    //     existingUsersLink.remove();
+    // }
     
     // Add Users link if user is owner
-    if (user && user[2] === 'owner') {
-        const usersLink = document.createElement('a');
-        usersLink.href = './users.html';
-        usersLink.className = 'nav-link';
-        usersLink.textContent = 'Users';
+    // if (user && user[2] === 'owner') {
+    //     const usersLink = document.createElement('a');
+    //     usersLink.href = './users.html';
+    //     usersLink.className = 'nav-link';
+    //     usersLink.textContent = 'Users';
         
-        // Add active class if on users page
-        if (window.location.pathname.includes('users.html')) {
-            usersLink.classList.add('active');
-        }
+    //     // Add active class if on users page
+    //     if (window.location.pathname.includes('users.html')) {
+    //         usersLink.classList.add('active');
+    //     }
         
-        navbar.appendChild(usersLink);
-    }
+    //     navbar.appendChild(usersLink);
+    // }
     
 }
 

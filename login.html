@@ -4,92 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <!-- <link rel="manifest" href="./static/manifest.json">
-    <link rel="shortcut icon" href="./static/icons/icon-256.png"> -->
     <link href="styles/style.css" rel="stylesheet">
 </head>
 <body class="login-section">
 
     <div class="login-container">
         <h2>Login</h2>
-        <div id="email-error" class="error"></div>
-        <input type="email" id="email" placeholder="email">
+        <div id="userid-error" class="error"></div>
+        <input type="text" id="userid" placeholder="User ID">
         <div id="password-error" class="error"></div>
         <input type="password" id="password" placeholder="Password">
         <button onclick="validateLogin()">Login</button>
     </div>
     
     <script>
-        
+        // Sample user data array
+        const users = [
+            { userid: "111", password: "pass123", name: "c1", machine:"Machine-01" },
+            { userid: "123", password: "pass123", name: "c2", machine:"Machine-04" },
+            { userid: "321", password: "pass123", name: "c3", machine:"Machine-05" },
+            { userid: "admin", password: "admin123", name: "c4",  machine:"All" }
+        ];
+
         function validateLogin() {
             // Clear previous error messages and reset borders
-            const emailError = document.getElementById('email-error');
+            const useridError = document.getElementById('userid-error');
             const passwordError = document.getElementById('password-error');
-            const emailInput = document.getElementById('email');
+            const useridInput = document.getElementById('userid');
             const passwordInput = document.getElementById('password');
     
-            emailError.textContent = '';
+            useridError.textContent = '';
             passwordError.textContent = '';
-            emailInput.classList.remove('error-border');
+            useridInput.classList.remove('error-border');
             passwordInput.classList.remove('error-border');
             
             // Get the input values
-            const email = emailInput.value.trim();
+            const userid = useridInput.value.trim();
             const password = passwordInput.value.trim();
-
-            const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com"
            
-    
-            // Validation for email
-            if (!email) {
-                emailError.textContent = 'Please enter your email.';
-                emailInput.classList.add('error-border');
+            // Validation for userid
+            if (!userid) {
+                useridError.textContent = 'Please enter your User ID.';
+                useridInput.classList.add('error-border');
+                return;
             }
     
             // Validation for password
             if (!password) {
                 passwordError.textContent = 'Please enter your password.';
                 passwordInput.classList.add('error-border');
+                return;
             }
     
-            // If both fields are valid, simulate login process
-            if (email && password) {
-                window.location.href = "chart.html"
-                // const data = {
-                //     email,
-                //     password
-                // }
-                // // sending post request to backend for login
-                //     fetch(`${api}/api/login`, {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json'
-                //     },
-                //     body: JSON.stringify(data)
-                // })
-                // .then(response => response.json())
-                // .then(data => {
-                    
-                //     // storing the user info in local storage if user exists
-                //     if(data.status = "success"){
-                //         window.localStorage.setItem("user", JSON.stringify(data.user))
-                //         window.location.href = "chart.html"
-                //     }
-                //     // showing error for invalid credentials
-                //     else{
-                        
-                //         passwordError.textContent = 'Invalid password.';
-                //         passwordInput.classList.add('error-border');
-                //         emailError.textContent = 'Inavlid email.';
-                //         emailInput.classList.add('error-border');
-             
-                //     }
-                //     console.log("Data sent successfully and Recieved:", data);
-                // })
-                // .catch(error => {
-                //     console.error("Error sending data:", error);
-                // });
+            // Find user in the array
+            const user = users.find(u => u.userid === userid && u.password === password);
 
+            if (user) {
+                // Store user info in localStorage (excluding password for security)
+                const userToStore = {
+                    userid: user.userid,
+                    name: user.name,
+                    machine: user.machine
+                };
+                window.localStorage.setItem("user", JSON.stringify(userToStore));
+                window.location.href = "chart.html";
+            } else {
+                // Show error for invalid credentials
+                passwordError.textContent = 'Invalid password.';
+                passwordInput.classList.add('error-border');
+                useridError.textContent = 'Invalid User ID.';
+                useridInput.classList.add('error-border');
             }
         }
 //     if("serviceWorker" in navigator){

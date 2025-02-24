@@ -81,7 +81,7 @@
     </style>
 </head>
 <body>
-    <!-- <script src="nav.js"></script> -->
+    <script src="nav.js"></script>
     
     <nav class="navbar">
         <!-- <div class="logo">LOGO</div> -->
@@ -881,6 +881,10 @@ function updateCheckboxes(data, reasonData, machineData) {
         fetch(`${CONFIG.api}/api/mc-graph`)
             .then(response => response.json())
             .then(data => {
+                let mc_no = localStorage.getItem("user");
+                mc_no = JSON.parse(mc_no);
+                console.log([mc_no.machine])
+                data.machines = mc_no.machine === "All" ? data.machines : [mc_no.machine]
                 console.log(data)
                 const processedData = processFetchedData(data);
                 console.log(processedData)
