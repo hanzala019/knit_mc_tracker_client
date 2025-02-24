@@ -120,9 +120,6 @@ body {
     flex-shrink: 0;
 }
 
-.logout-button {
-    display: none;
- }
  .end-time-marker {
     pointer-events: none;
 }

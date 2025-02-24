@@ -7,6 +7,10 @@
     <link href="styles/style.css" rel="stylesheet">
     <link href="styles/chart.css" rel="stylesheet">
     <style>
+              .navbar{
+                justify-content: space-evenly !important;
+            }
+
  .chart-header {
     display: flex;
     justify-content: space-between;
@@ -84,21 +88,17 @@
     <script src="nav.js"></script>
     
     <nav class="navbar">
-        <!-- <div class="logo">LOGO</div> -->
+        <div class="logo">LOGO</div>
         <div class="nav-links" >
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
-            <a href="./report.html" class="nav-link">Report</a>
-            <a href="./simulate.html" class="nav-link">Simulation</a>
+            <!-- <a href="./report.html" class="nav-link">Report</a> -->
+            <!-- <a href="./simulate.html" class="nav-link">Simulation</a> -->
         </div>
-        <!-- <div class="user-section">
-            <div class="user-info">
-                <div class="avatar" id="avatar">A</div>
+            <div class="user-section">
+                 <button class="logout-button">Logout</button>
             </div>
-            <div class="logout-section">
-                <button class="logout-button">Logout</button>
-            </div>
-        </div> -->
+        
     </nav>
     <div class="container">
         <section class="chart-section">
@@ -237,7 +237,7 @@
 
         // Configuration
         const CONFIG = {
-            api:  "https://knit-mc-tracker-server.onrender.com",
+            api: "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com",
             refreshInterval: 600000, // 30 seconds
             charts: {
                 margin: { top: 20, right: 10, bottom: 20, left: 90 },

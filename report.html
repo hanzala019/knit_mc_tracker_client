@@ -23,6 +23,9 @@
             max-width: 1000px;
             /* Added max-width */
         }
+        .navbar{
+                justify-content: space-evenly !important;
+            }
 
                 .nav-link2 {
             font-size: 16px;
@@ -142,21 +145,17 @@
 <body>
     <script src="nav.js"></script>
     <nav class="navbar">
-        <!-- <div class="logo">LOGO</div> -->
+        <div class="logo">LOGO</div>
         <div class="nav-links" >
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
             <a href="./report.html" class="nav-link">Report</a>
-            <a href="./simulate.html" class="nav-link">Simulation</a>
+            <!-- <a href="./simulate.html" class="nav-link">Simulation</a> -->
         </div>
-        <!-- <div class="user-section">
-            <div class="user-info">
-                <div class="avatar" id="avatar">A</div>
+            <div class="user-section">
+                 <button class="logout-button">Logout</button>
             </div>
-            <div class="logout-section">
-                <button class="logout-button">Logout</button>
-            </div>
-        </div> -->
+        
     </nav>
     <div class="container-fluid py-4">
         <div class="row mb-2">
@@ -179,6 +178,14 @@
                             <div class="col-md-3 col-sm-6">
                                 <label for="dateTo">To:</label>
                                 <input type="date" id="dateTo" class="form-control">
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label for="shiftFilter">Shift:</label>
+                                <select id="shiftFilter" class="form-control">
+                                    <option value="">All Shifts</option>
+                                    <option value="Day">Day (8 AM - 8 PM)</option>
+                                    <option value="Night">Night (8 PM - 8 AM)</option>
+                                </select>
                             </div>
                             <div class="col-md-3 col-sm-6 d-flex align-items-end">
                                 <button id="applyDates" class="btn btn-primary">Apply</button>
@@ -353,6 +360,44 @@
     </div>
 
     <script>
+
+
+function getCurrentTimeInMilliSeconds() {
+            const now = Date.now();
+            const startOfToday = new Date();
+            startOfToday.setHours(0, 0, 0, 0);
+            return Math.floor((now - startOfToday.getTime()) / 1000);
+        }
+
+function getTimeRangeInSeconds(dateFrom, dateTo, numMachines) {
+    const now = new Date();
+    now.setHours(now.getHours() + 6); // Adjust for GMT+6
+
+    if (!dateFrom && !dateTo) {
+        // No filter: time since midnight today
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        return ((now - midnight) / 1000) * numMachines; // Seconds since midnight * machines
+    }
+
+    const startDate = dateFrom ? new Date(dateFrom) : new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = dateTo ? new Date(dateTo) : now;
+    startDate.setHours(0, 0, 0, 0); // Start of day
+    endDate.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds(), 999); // Current time or end of day
+
+    const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // Inclusive days
+    let totalSeconds;
+
+    if (dateTo && new Date(dateTo).toDateString() === now.toDateString()) {
+        // If end date is today, use days * 24 + current hours
+        const hoursToday = now.getHours() + (now.getMinutes() / 60); // Fractional hours
+        totalSeconds = ((daysDiff - 1) * 24 + hoursToday) * 60 * 60 * numMachines;
+    } else {
+        // Full days
+        totalSeconds = daysDiff * 24 * 60 * 60 * numMachines;
+    }
+
+    return totalSeconds;
+}
             
             document.addEventListener('DOMContentLoaded', function() {
   const tabContent = document.getElementById('analyticsTabContent');
@@ -578,7 +623,7 @@ document.head.appendChild(style);
             result: []
         };
         let machineViews = {};
-        const api =   "https://knit-mc-tracker-server.onrender.com"
+        const api = "http://127.0.0.1:5000" ||  "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = [
@@ -899,32 +944,167 @@ document.head.appendChild(style);
     document.head.appendChild(style);
 }
 
+function timeDifferenceMs(date_from, date_to) {
+    const now = new Date();
+    let date1 = new Date(date_from);
+    let date2 = new Date(date_to);
+    console.log(date1,date2)
+    // If date_from is a past date, set it to the beginning of the day (00:00:00.000)
+    date1.setHours(0, 0, 0, 0);
+
+    // If date_to is today, set its time to current time
+    if (
+        date2.getFullYear() === now.getFullYear() &&
+        date2.getMonth() === now.getMonth() &&
+        date2.getDate() === now.getDate()
+    ) {
+        date2 = now;
+        console.log("now ", date2)
+    } else {
+        // If date_to is a past date, set its time to the end of the day (23:59:59.999)
+        console.log("now later", date2)
+        date2.setHours(23, 59, 59, 999);
+        
+        console.log("now later", date2)
+    }
+
+    return Math.abs(date2 - date1); // Difference in milliseconds
+}
+
         // --- Data Analysis ---
-        function analyzeData(machineData) {
-            try {
-                if (!machineData) {
-                    machineData = window.cachedMachineData; // Try to use cached data if available
-                    if (!machineData) {
-                        console.error("No machine data available for analysis");
-                        return;
-                    }
-                } else {
-                    window.cachedMachineData = machineData; // Cache data for later use
-                }
-
-                const selectedMachines = getSelectedCheckboxes('machine');
-                analysis = analyzeEvents(selectedMachines, machineData); // Store analysis result globally
-
-                updateOverviewTab(analysis);
-                updateMachineAnalysisTab(analysis);
-                updateReasonAnalysisTab(analysis);
-
-                // Render charts with the analysis data
-                renderOverviewCharts(analysis);
-            } catch (error) {
-                handleError(error, 'Failed to analyze data');
+        async function analyzeData(machineData) {
+    try {
+        if (!machineData) {
+            machineData = window.cachedMachineData;
+            if (!machineData) {
+                console.error("No machine data available for analysis");
+                return;
             }
+        } else {
+            window.cachedMachineData = machineData;
         }
+
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const shiftFilter = document.getElementById('shiftFilter').value;
+        const selectedMachines = getSelectedCheckboxes('machine');
+        console.log(dateFrom,dateTo)
+
+        
+        let filteredMachineData = [];
+        let totalTimeSeconds = Math.floor((timeDifferenceMs(dateFrom, dateTo)/1000));  // Total time for NPT calculation
+        console.log("Total time in sec", totalTimeSeconds)
+        // Calculate total time based on filter or current time
+        const now = new Date();
+        now.setHours(now.getHours() + 6); // Adjust for GMT+6
+
+        if (dateFrom || dateTo) {
+            const startDate = dateFrom ? new Date(dateFrom) : new Date(now.getFullYear(), now.getMonth(), 1);
+            const endDate = dateTo ? new Date(dateTo) : now;
+            startDate.setHours(0, 0, 0, 0); // Start of day
+            endDate.setHours(23, 59, 59, 999); // End of day
+
+            if (dateFrom && !dateTo) {
+                dateTo = now.toISOString().slice(0, 10);
+                document.getElementById('dateTo').value = dateTo;
+            } else if (!dateFrom && dateTo) {
+                dateFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+                document.getElementById('dateFrom').value = dateFrom;
+            }
+
+            // Calculate total time in seconds
+            const daysDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1; // Include both start and end days
+            totalTimeSeconds = daysDiff * 24 * 60 * 60 * selectedMachines.length; // Total seconds for all machines
+
+            // Fetch data from backend
+            const payload = {
+                from_date: dateFrom || null,
+                to_date: dateTo || null,
+                mc_no: selectedMachines.length > 0 ? selectedMachines : null
+            };
+
+            const response = await fetch(`${api}/api/mc-report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.success || !data.result) {
+                throw new Error('Invalid response from server');
+            }
+
+            filteredMachineData = data.result.map(event => ({
+                machine: event[1], // mc_no
+                result: [{
+                    2: event[2], // off_time
+                    3: event[3], // on_time
+                    4: event[4], // duration
+                    6: event[6]  // reason
+                }]
+            })).reduce((acc, curr) => {
+                const existing = acc.find(m => m.machine === curr.machine);
+                if (existing) {
+                    existing.result.push(...curr.result);
+                } else {
+                    acc.push(curr);
+                }
+                return acc;
+            }, []);
+        } else {
+            // No date filter: use time from midnight to now for all selected machines
+            const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            totalTimeSeconds = (now - midnight) / 1000 * selectedMachines.length; // Seconds since midnight
+            filteredMachineData = [...machineData];
+        }
+
+        // Apply shift filter on frontend
+        if (filteredMachineData.length > 0 && shiftFilter) {
+            filteredMachineData = filteredMachineData.map(machineItem => ({
+                machine: machineItem.machine,
+                result: machineItem.result.filter(event => {
+                    let matchesShift = true;
+                    if (shiftFilter) {
+                        const offTime = new Date(event[2]);
+                        offTime.setHours(offTime.getHours() + 6); // Adjust for GMT+6
+                        const hour = offTime.getHours();
+                        matchesShift = shiftFilter === 'Day'
+                            ? (hour >= 8 && hour < 20)
+                            : (hour >= 20 || hour < 8);
+                    }
+                    return matchesShift;
+                })
+            }));
+        }
+
+        // Analyze and update UI
+        if (filteredMachineData.length === 0 || filteredMachineData.every(m => m.result.length === 0)) {
+            console.warn('No data after filtering');
+            analysis = { machines: {}, reasons: {}, totalDowntime: 0, totalEvents: 0, uptime: 0, totalRuntime: totalTimeSeconds };
+        } else {
+            analysis = analyzeEvents(selectedMachines, filteredMachineData, totalTimeSeconds);
+        }
+
+        updateOverviewTab(analysis);
+        updateMachineAnalysisTab(analysis);
+        updateReasonAnalysisTab(analysis);
+        renderOverviewCharts(analysis);
+
+    } catch (error) {
+        handleError(error, 'Failed to analyze data');
+        analysis = { machines: {}, reasons: {}, totalDowntime: 0, totalEvents: 0, uptime: 0, totalRuntime: 0 };
+        updateOverviewTab(analysis);
+        updateMachineAnalysisTab(analysis);
+        updateReasonAnalysisTab(analysis);
+        renderOverviewCharts(analysis);
+    }
+}
 
         // --- Get Selected Checkboxes ---
         function getSelectedCheckboxes(type) {
@@ -2489,32 +2669,6 @@ function renderReasonPieChart(analysis) {
 }
 
 
-// Update the existing analyzeData function by adding a call to renderOverviewCharts
-function analyzeData(machineData) {
-  try {
-    if (!machineData) {
-      machineData = window.cachedMachineData;
-      if (!machineData) {
-        console.error("No machine data available for analysis");
-        return;
-      }
-    } else {
-      window.cachedMachineData = machineData;
-    }
-
-    const selectedMachines = getSelectedCheckboxes('machine');
-    analysis = analyzeEvents(selectedMachines, machineData);
-
-    updateOverviewTab(analysis);
-    updateMachineAnalysisTab(analysis);
-    updateReasonAnalysisTab(analysis);
-
-    // Render charts with the analysis data
-    renderOverviewCharts(analysis);
-  } catch (error) {
-    handleError(error, 'Failed to analyze data');
-  }
-}
 // Function to filter machine data by date range (unchanged)
 function filterMachineDataByDate(machineData, fromDate, toDate) {
     const from = new Date(fromDate).setUTCHours(0, 0, 0, 0);
@@ -2641,37 +2795,6 @@ function initializeEventListeners(machineData) {
 }
 
 // analyzeData (unchanged)
-function analyzeData(machineData) {
-    try {
-        if (!machineData) {
-            machineData = window.cachedMachineData;
-            if (!machineData) {
-                console.error("No machine data available for analysis");
-                return;
-            }
-        } else {
-            window.cachedMachineData = machineData;
-        }
-
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
-
-        const filteredMachineData = dateFrom && dateTo ? 
-            filterMachineDataByDate(machineData, dateFrom, dateTo) : 
-            machineData;
-
-        const selectedMachines = getSelectedCheckboxes('machine');
-        analysis = analyzeEvents(selectedMachines, filteredMachineData);
-
-        updateOverviewTab(analysis);
-        updateMachineAnalysisTab(analysis);
-        updateReasonAnalysisTab(analysis);
-        renderOverviewCharts(analysis);
-    } catch (error) {
-        handleError(error, 'Failed to analyze data');
-    }
-}
-
 
         // --- Start the Dashboard ---
         initializePage();

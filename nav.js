@@ -12,6 +12,14 @@ function updateNavigation() {
         
         user = JSON.parse(user)
     }
+
+
+    // Add logout functionality
+    const logoutButton = document.querySelector(".logout-button");
+    if (logoutButton) {
+        logoutButton.addEventListener("click", handleLogout);
+    }
+
     // // First remove any existing Users link to avoid duplicates
     // const existingUsersLink = navbar.querySelector('[href="./users.html"]');
     // if (existingUsersLink) {
@@ -33,6 +41,14 @@ function updateNavigation() {
     //     navbar.appendChild(usersLink);
     // }
     
+}
+
+function handleLogout() {
+    // Clear localStorage
+    localStorage.removeItem("user");
+    
+    // Redirect to login page (adjust the path as needed)
+    window.location.href = "./login.html"; // Assuming you have a login page
 }
 
 // Call this when the DOM is loaded

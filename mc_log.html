@@ -37,17 +37,25 @@
                 margin-bottom: 10px;
                 margin-left: 15px;
             }
+            .navbar{
+                justify-content: space-evenly;
+            }
         </style>
     </head>
 <body>
     <script src="nav.js"></script>
     <nav class="navbar">
+        <div class="logo">LOGO</div>
         <div class="nav-links" >
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
-            <a href="./report.html" class="nav-link">Report</a>
-            <a href="./simulate.html" class="nav-link">Simulation</a>
+            <!-- <a href="./report.html" class="nav-link">Report</a> -->
+            <!-- <a href="./simulate.html" class="nav-link">Simulation</a> -->
         </div>
+            <div class="user-section">
+                 <button class="logout-button">Logout</button>
+            </div>
+        
     </nav>
 
      <div class="container">
@@ -193,7 +201,7 @@
             {name:"Roll Cutting", count: 0},
             {name:"Yarn Breakage", count: 0},
         ];
-        const api =  "https://knit-mc-tracker-server.onrender.com";
+        const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com";
         let originalMcLogs = [];
         let filtersInitialized = false;
         let allMc = [];
