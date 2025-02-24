@@ -72,7 +72,7 @@
     background-color: #1f252b; /* Your existing dark background */
     padding: 10px 20px;
     border-bottom: 1px solid #e1e1e1;
-    position: relative; /* For absolute positioning of logout */
+    /* position: relative; For absolute positioning of logout */
 }
 
 .nav-links {
