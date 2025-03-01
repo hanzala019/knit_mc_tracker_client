@@ -7,81 +7,81 @@
     <link href="styles/style.css" rel="stylesheet">
     <link href="styles/chart.css" rel="stylesheet">
     <style>
-              .navbar{
-                justify-content: space-evenly !important;
-            }
+        .navbar{
+            justify-content: space-evenly !important;
+        }
 
- .chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-}
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
 
-.settings-toggle {
-    cursor: pointer;
-    padding: 5px;
-    margin-right: 20px;
-}
+        .settings-toggle {
+            cursor: pointer;
+            padding: 5px;
+            margin-right: 20px;
+        }
 
-.settings-panel {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    z-index: 1000;
-    display: none;
-    min-width: 250px;
-}
+        .settings-panel {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+            min-width: 250px;
+        }
 
-.settings-panel.active {
-    display: block;
-}
+        .settings-panel.active {
+            display: block;
+        }
 
-.settings-section {
-    margin-bottom: 15px;
-}
+        .settings-section {
+            margin-bottom: 15px;
+        }
 
-.settings-section h3 {
-    margin: 0 0 10px 0;
-    font-size: 14px;
-}
-.settings-actions {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-    text-align: right;
-}
+        .settings-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+        }
+        .settings-actions {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
 
-.checkbox-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    max-height: 200px;
-    overflow-y: auto;
-}
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
 
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.reset-button {
-    background-color: #f0f0f0;
-    border: 1px solid #ddd;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .reset-button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
 
-.reset-button:hover {
-    background-color: #e0e0e0;
-}
+        .reset-button:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -92,25 +92,49 @@
         <div class="nav-links" >
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
-            <!-- <a href="./report.html" class="nav-link">Report</a> -->
-            <!-- <a href="./simulate.html" class="nav-link">Simulation</a> -->
+            <a href="./report.html" class="nav-link">Report</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
         </div>
-            <div class="user-section">
-                 <button class="logout-button">Logout</button>
-            </div>
-        
+        <div class="user-section">
+            <button class="logout-button">Logout</button>
+        </div>
     </nav>
     <div class="container">
         <section class="chart-section">
             <div class="chart-header">
-                
-                    <h1>Knitting Machine NPT Tracker</h1>
-                    <h1 id="currentDate" style="margin-right: 20px;"></h1>
-                
+                <h1>Knitting Machine NPT Tracker</h1>
+                <h1 id="currentDate" style="margin-right: 20px;"></h1>
             </div>
             <div class="chart-container">
                 <div id="timeline-chart"></div>
             </div>     
+        </section>
+        <section class="chart-section">
+            <div class="chart-header">
+                <h1>Machine Duration Over Time</h1>
+                <div class="settings-toggle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l-.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </div>
+                <div class="settings-panel">
+                    <div class="settings-section">
+                        <h3>Select Reasons</h3>
+                        <div class="checkbox-group" id="reason-checkboxes"></div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Select Machines</h3>
+                        <div class="checkbox-group" id="machine-checkboxes"></div>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="reset-button">Reset to Default</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div id="duration-graph"></div>
+            </div>
         </section>
         <section class="chart-section">
             <div class="chart-header">
@@ -134,73 +158,31 @@
     setInterval(runningTime, 1000)
     runningTime()
     
-    // Add this to your JavaScript code after the CONFIG object
     let selectedReasons = new Set(JSON.parse(localStorage.getItem('selectedReasons')) || []);
     let selectedMachines = new Set(JSON.parse(localStorage.getItem('selectedMachines')) || []);
 
     function initializeSettings() {
-    // Modify the chart header HTML
-    const chartHeader = document.querySelector('.chart-section:nth-child(2) .chart-header');
-    chartHeader.innerHTML = `
-        <h1>Machine Status Duration Analysis</h1>
-        <div class="settings-toggle">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-        </div>
-        <div class="settings-panel">
-            <div class="settings-section">
-                <h3>Select Reasons</h3>
-                <div class="checkbox-group" id="reason-checkboxes"></div>
-            </div>
-            <div class="settings-section">
-                <h3>Select Machines</h3>
-                <div class="checkbox-group" id="machine-checkboxes"></div>
-            </div>
-            <div class="settings-actions">
-                <button class="reset-button">Reset to Default</button>
-            </div>
-        </div>
-    `;
+        const settingsToggle = document.querySelector('.settings-toggle');
+        const settingsPanel = document.querySelector('.settings-panel');
 
-    // Add click handler for settings toggle
-    const settingsToggle = document.querySelector('.settings-toggle');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    settingsToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settingsPanel.classList.toggle('active');
-    });
-
-    // Add reset button handler
-    const resetButton = document.querySelector('.reset-button');
-    resetButton.addEventListener('click', () => {
-        // Clear all selections
-        selectedReasons.clear();
-        selectedMachines.clear();
-        
-        // Clear localStorage
-        localStorage.removeItem('selectedReasons');
-        localStorage.removeItem('selectedMachines');
-        
-        // Update checkboxes UI
-        const checkboxes = document.querySelectorAll('.checkbox-item input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = false;
+        settingsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsPanel.classList.toggle('active');
         });
-        
-        // Update charts
-        location.reload()
-    });
 
-    // Close panel when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!settingsPanel.contains(e.target) && !settingsToggle.contains(e.target)) {
-            settingsPanel.classList.remove('active');
-        }
-    });
-        // Close panel when clicking outside
+        const resetButton = document.querySelector('.reset-button');
+        resetButton.addEventListener('click', () => {
+            selectedReasons.clear();
+            selectedMachines.clear();
+            localStorage.removeItem('selectedReasons');
+            localStorage.removeItem('selectedMachines');
+            const checkboxes = document.querySelectorAll('.checkbox-item input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            location.reload()
+        });
+
         document.addEventListener('click', (e) => {
             if (!settingsPanel.contains(e.target) && !settingsToggle.contains(e.target)) {
                 settingsPanel.classList.remove('active');
@@ -208,350 +190,355 @@
         });
     }
 
-    // Function to save selections to localStorage
     function saveSelections() {
         localStorage.setItem('selectedReasons', JSON.stringify([...selectedReasons]));
         localStorage.setItem('selectedMachines', JSON.stringify([...selectedMachines]));
     }
 
-        
-        // Initialize navigation
-        document.addEventListener("DOMContentLoaded", () => {
-            const links = document.querySelectorAll(".nav-link");
-            const currentPage = window.location.pathname.split("/").pop().split(".")[0];
-            links.forEach(link => {
-                if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
-                    link.classList.add("active");
-                }
-            });
+    document.addEventListener("DOMContentLoaded", () => {
+        const links = document.querySelectorAll(".nav-link");
+        const currentPage = window.location.pathname.split("/").pop().split(".")[0];
+        links.forEach(link => {
+            if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
+                link.classList.add("active");
+            }
         });
+    });
 
-        function findStopReason(events, stopTime) {
-            // console.log("in func",events)
-            const nextButton = events.find(event => 
-                event.status === "Button Pressed" && 
-                new Date(event.timestamp.replace('GMT', '').trim()) > new Date(stopTime)
-            );
-            return nextButton?.reason || "N/A";
-        }
-
-        // Configuration
-        const CONFIG = {
-            api:  "https://knit-mc-tracker-server.onrender.com",
-            refreshInterval: 600000, // 30 seconds
-            charts: {
-                margin: { top: 20, right: 10, bottom: 20, left: 90 },
-                width: 800,
-                minHeight: 500,
-                heightPerMachine: 25,
-                barHeight: 10
-            },
-            timelines: {
-            endTime: '20:00', // 8 PM cutoff time
-            warningColor: '#ff6b6b' // Color for running after cutoff
+    function findStopReason(events, stopTime) {
+        const nextButton = events.find(event => 
+            event.status === "Button Pressed" && 
+            new Date(event.timestamp.replace('GMT', '').trim()) > new Date(stopTime)
+        );
+        return nextButton?.reason || "N/A";
     }
-        };
 
-        // Utility function to format seconds into shortened days, hours, minutes, and seconds
-        function formatSeconds(seconds) {
-            const days = Math.floor(seconds / 86400); // 86400 seconds in a day
-            const hours = Math.floor((seconds % 86400) / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            const secs = Math.floor(seconds % 60);
-
-            let result = [];
-            
-            if (days > 0) result.push(`${days}d`);
-            if (hours > 0) result.push(`${hours}h`);
-            if (minutes > 0) result.push(`${minutes}min`);
-            if (secs > 0) result.push(`${secs}sec`);
-
-            return result.join(' ');
+    const CONFIG = {
+        api:  "https://knit-mc-tracker-server.onrender.com",
+        refreshInterval: 600000,
+        charts: {
+            margin: { top: 20, right: 10, bottom: 20, left: 90 },
+            width: 800,
+            minHeight: 500,
+            heightPerMachine: 25,
+            barHeight: 10
+        },
+        timelines: {
+            endTime: '20:00',
+            warningColor: '#ff6b6b'
         }
+    };
 
-        function getCurrentTimeInMilliSeconds(){
-                    const now = Date.now(); // Current timestamp in milliseconds
-                    const startOfToday = new Date();
-                    startOfToday.setHours(0, 0, 0, 0); // Set to midnight (start of the day)
+    function formatSeconds(seconds) {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = Math.floor(seconds % 60);
 
-                    const totalTimeToday = Math.floor((now - startOfToday.getTime()) / 1000);
-                  
-                    return totalTimeToday
-        }
-        
-        function getContainerSize(containerId) {
-            const container = document.getElementById(containerId);
-            const rect = container.getBoundingClientRect();
-            return {
-                width: rect.width - 30,
-                height: Math.min(rect.width - 30, 300)
-            };
-        }
+        let result = [];
+        if (days > 0) result.push(`${days}d`);
+        if (hours > 0) result.push(`${hours}h`);
+        if (minutes > 0) result.push(`${minutes}min`);
+        if (secs > 0) result.push(`${secs}sec`);
+        return result.join(' ');
+    }
 
-        function formatDateTime(date) {
-            return date.toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
-
-        function createTooltip(content, event) {
-            const tooltip = d3.select('body')
-                .append('div')
-                .attr('class', 'tooltip');
-
-            tooltip.html(content)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 10) + 'px');
-        }
-
-        function createPieChart(data, containerId, title, colorScale) {
-            const size = getContainerSize(containerId);
-            const radius = Math.min(size.width, size.height) / 2.5;
-
-            const svg = d3.select(`#${containerId}`)
-                .append('svg')
-                .attr('viewBox', `0 0 ${size.width} ${size.height + 30}`)
-                .append('g')
-                .attr('transform', `translate(${size.width/2},${size.height/2})`);
-
-            // Add title
-            d3.select(`#${containerId} svg`)
-                .append('text')
-                .attr('x', size.width/2)
-                .attr('y', 20)
-                .attr('text-anchor', 'middle')
-                .style('font-size', '14px')
-                .style('font-weight', 'bold')
-                .text(title);
-
-            const pie = d3.pie()
-                .value(d => d.value)
-                .sort(null);
-
-            const arc = d3.arc()
-                .innerRadius(0)
-                .outerRadius(radius);
-
-            const arcs = svg.selectAll('arc')
-                .data(pie(data))
-                .enter()
-                .append('g');
-
-            arcs.append('path')
-                .attr('d', arc)
-                .attr('fill', d => colorScale(d.data.reason || d.data.machine))
-                .on('mouseover', function(event, d) {
-                    // console.log(d)
-                    const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
-                    const totalTimeToday = getCurrentTimeInMilliSeconds()
-                      // for individual machine npt percentage
-                    const percentageByTimePassed = ((d.value/totalTimeToday)* 100).toFixed(1)
-
-                    const content = `${d.data.reason ?  (d.data.reason  + " (" + d.data.count + ")") : d.data.machine}
-                    <br>${formatSeconds(d.value.toFixed(1))}s (${d.reason? percent : percentageByTimePassed}%)`;
-                    createTooltip(content, event);
-                })
-                .on('mouseout', () => d3.selectAll('.tooltip').remove());
-
-            // Add legend
-            const legend = d3.select(`#${containerId}`)
-                .append('div')
-                .attr('class', 'legend');
-
-            data.forEach(d => {
-                const legendItem = legend.append('div')
-                    .attr('class', 'legend-item');
-
-                legendItem.append('div')
-                    .attr('class', 'legend-color')
-                    .style('background-color', colorScale(d.reason || d.machine));
-
-                legendItem.append('span')
-                    .text(d.reason || d.machine);
-            });
-        }
-
-        function createBarChart(data, containerId, title, colorScale) {
-            const size = getContainerSize(containerId);
-            const margin = {
-                top: 40,
-                right: 20,
-                bottom: 100,
-                left: 60
-            };
-            const width = size.width - margin.left - margin.right;
-            const height = size.height - margin.top - margin.bottom;
-
-            const svg = d3.select(`#${containerId}`)
-                .append('svg')
-                .attr('viewBox', `0 0 ${size.width} ${size.height}`)
-                .append('g')
-                .attr('transform', `translate(${margin.left},${margin.top})`);
-
-            svg.append('text')
-                .attr('x', width/2)
-                .attr('y', -20)
-                .attr('text-anchor', 'middle')
-                .style('font-size', '14px')
-                .style('font-weight', 'bold')
-                .text(title);
-
-            const x = d3.scaleBand()
-                .range([0, width])
-                .domain(data.map(d => d.reason || d.machine))
-                .padding(0.2);
-
-            const y = d3.scaleLinear()
-                .domain([0, d3.max(data, d => d.value)])
-                .range([height, 0]);
-
-            // Add axes
-            svg.append('g')
-                .attr('transform', `translate(0,${height})`)
-                .call(d3.axisBottom(x))
-                .selectAll('text')
-                .attr('transform', 'rotate(-45)')
-                .style('text-anchor', 'end')
-                .style('font-size', '10px');
-
-            svg.append('g')
-                .call(d3.axisLeft(y));
-
-            // Add bars
-            svg.selectAll('bars')
-                .data(data)
-                .enter()
-                .append('rect')
-                .attr('x', d => x(d.reason || d.machine))
-                .attr('y', d => y(d.value))
-                .attr('width', x.bandwidth())
-                .attr('height', d => height - y(d.value))
-                .attr('fill', d => colorScale(d.reason || d.machine))
-                .on('mouseover', function(event, d) {
-                    // console.log(data)
-                    // percentage based on total machine npt, not individual machine npt
-                    const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
-                    const now = Date.now(); // Current timestamp in milliseconds
-                    const startOfToday = new Date();
-                    startOfToday.setHours(0, 0, 0, 0); // Set to midnight (start of the day)
-
-                    const totalTimeToday = Math.floor((now - startOfToday.getTime()) / 1000);
-                    // for individual machine npt percentage
-                    const percentageByTimePassed = ((d.value/totalTimeToday)* 100).toFixed(1)
-                    const content = `
-                    ${d.reason || d.machine}
-                    <br>${formatSeconds(d.value.toFixed(1))}s (${ d.reason ? percent : percentageByTimePassed}%)
-                    ${d.reason? ("<br>Count: " + d.count) : ""}
-                    `; // if total npt for reasonwise, individual for machinewise
-                    createTooltip(content, event);
-                })
-                .on('mouseout', () => d3.selectAll('.tooltip').remove());
-        }
-
-        function processFetchedData(data) {
-    const processedData = [];
-    const currentTime = new Date();
+    function getCurrentTimeInMilliSeconds(){
+        const now = Date.now();
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        return Math.floor((now - startOfToday.getTime()) / 1000);
+    }
     
-    data.machines.forEach(machineName => {
-        const machineData = {
-            machine: machineName,
-            periods: []
+    function getContainerSize(containerId) {
+        const container = document.getElementById(containerId);
+        const rect = container.getBoundingClientRect();
+        return {
+            width: rect.width - 30,
+            height: Math.min(rect.width - 30, 300)
         };
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        
-        const events = data.result[machineName] || [];
-        
-        if (events.length > 0) {
-            const statusEvents = events.filter(event => event.status === "Machine On" || event.status === "Machine Off")
-                .sort((a, b) => new Date(a.timestamp.replace('GMT', '').trim()) - 
-                              new Date(b.timestamp.replace('GMT', '').trim()));
-            
-            if (statusEvents.length > 0) {
-                const firstEvent = new Date(statusEvents[0].timestamp.replace('GMT', '').trim());
-                let lastEvent = new Date(statusEvents[statusEvents.length - 1].timestamp.replace('GMT', '').trim());
+    }
 
-                if (firstEvent >= today && firstEvent <= currentTime) {
+    function formatDateTime(date) {
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    function createTooltip(content, event) {
+        const tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'tooltip');
+
+        tooltip.html(content)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px');
+    }
+
+    function createPieChart(data, containerId, title, colorScale) {
+        const size = getContainerSize(containerId);
+        const radius = Math.min(size.width, size.height) / 2.5;
+
+        const svg = d3.select(`#${containerId}`)
+            .append('svg')
+            .attr('viewBox', `0 0 ${size.width} ${size.height + 30}`)
+            .append('g')
+            .attr('transform', `translate(${size.width/2},${size.height/2})`);
+
+        d3.select(`#${containerId} svg`)
+            .append('text')
+            .attr('x', size.width/2)
+            .attr('y', 20)
+            .attr('text-anchor', 'middle')
+            .style('font-size', '14px')
+            .style('font-weight', 'bold')
+            .text(title);
+
+        const pie = d3.pie()
+            .value(d => d.value)
+            .sort(null);
+
+        const arc = d3.arc()
+            .innerRadius(0)
+            .outerRadius(radius);
+
+        const arcs = svg.selectAll('arc')
+            .data(pie(data))
+            .enter()
+            .append('g');
+
+        arcs.append('path')
+            .attr('d', arc)
+            .attr('fill', d => colorScale(d.data.reason || d.data.machine))
+            .on('mouseover', function(event, d) {
+                const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
+                const totalTimeToday = getCurrentTimeInMilliSeconds();
+                const percentageByTimePassed = ((d.value/totalTimeToday)* 100).toFixed(1);
+                const content = `${d.data.reason ? (d.data.reason + " (" + d.data.count + ")") : d.data.machine}
+                <br>${formatSeconds(d.value.toFixed(1))}s (${d.reason ? percent : percentageByTimePassed}%)`;
+                createTooltip(content, event);
+            })
+            .on('mouseout', () => d3.selectAll('.tooltip').remove());
+
+        const legend = d3.select(`#${containerId}`)
+            .append('div')
+            .attr('class', 'legend');
+
+        data.forEach(d => {
+            const legendItem = legend.append('div')
+                .attr('class', 'legend-item');
+
+            legendItem.append('div')
+                .attr('class', 'legend-color')
+                .style('background-color', colorScale(d.reason || d.machine));
+
+            legendItem.append('span')
+                .text(d.reason || d.machine);
+        });
+    }
+
+    function createBarChart(data, containerId, title, colorScale) {
+        const size = getContainerSize(containerId);
+        const margin = {
+            top: 40,
+            right: 20,
+            bottom: 100,
+            left: 60
+        };
+        const width = size.width - margin.left - margin.right;
+        const height = size.height - margin.top - margin.bottom;
+
+        const svg = d3.select(`#${containerId}`)
+            .append('svg')
+            .attr('viewBox', `0 0 ${size.width} ${size.height}`)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        svg.append('text')
+            .attr('x', width/2)
+            .attr('y', -20)
+            .attr('text-anchor', 'middle')
+            .style('font-size', '14px')
+            .style('font-weight', 'bold')
+            .text(title);
+
+        const x = d3.scaleBand()
+            .range([0, width])
+            .domain(data.map(d => d.reason || d.machine))
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .range([height, 0]);
+
+        svg.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x))
+            .selectAll('text')
+            .attr('transform', 'rotate(-45)')
+            .style('text-anchor', 'end')
+            .style('font-size', '10px');
+
+        svg.append('g')
+            .call(d3.axisLeft(y));
+
+        svg.selectAll('bars')
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr('x', d => x(d.reason || d.machine))
+            .attr('y', d => y(d.value))
+            .attr('width', x.bandwidth())
+            .attr('height', d => height - y(d.value))
+            .attr('fill', d => colorScale(d.reason || d.machine))
+            .on('mouseover', function(event, d) {
+                const percent = (d.value / d3.sum(data, d => d.value) * 100).toFixed(1);
+                const now = Date.now();
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+                const totalTimeToday = Math.floor((now - startOfToday.getTime()) / 1000);
+                const percentageByTimePassed = ((d.value/totalTimeToday)* 100).toFixed(1);
+                const content = `
+                ${d.reason || d.machine}
+                <br>${formatSeconds(d.value.toFixed(1))}s (${d.reason ? percent : percentageByTimePassed}%)
+                ${d.reason ? ("<br>Count: " + d.count) : ""}
+                `;
+                createTooltip(content, event);
+            })
+            .on('mouseout', () => d3.selectAll('.tooltip').remove());
+    }
+
+    function processFetchedData(data) {
+        const processedData = [];
+        const currentTime = new Date();
+        
+        data.machines.forEach(machineName => {
+            const machineData = {
+                machine: machineName,
+                periods: []
+            };
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            
+            const events = data.result[machineName] || [];
+            
+            if (events.length > 0) {
+                const statusEvents = events.filter(event => event.status === "Machine On" || event.status === "Machine Off")
+                    .sort((a, b) => new Date(a.timestamp.replace('GMT', '').trim()) - 
+                                  new Date(b.timestamp.replace('GMT', '').trim()));
+                
+                if (statusEvents.length > 0) {
+                    const firstEvent = new Date(statusEvents[0].timestamp.replace('GMT', '').trim());
+                    let lastEvent = new Date(statusEvents[statusEvents.length - 1].timestamp.replace('GMT', '').trim());
+
+                    if (firstEvent >= today && firstEvent <= currentTime) {
+                        machineData.periods.push({
+                            status: "Machine Off",
+                            start: today,
+                            actualStartTime: today,
+                            end: firstEvent,
+                            duration: (firstEvent - today) / 1000,
+                            actualDuration: (firstEvent - today) / 1000,
+                            reason: "No operation data"
+                        });
+                    }
+
+                    let startTime = null;
+                    let currentStatus = null;
+                    let reason = "N/A";
+                    let actualStartTimeForPeriod = null;
+                    
+                    statusEvents.forEach((event, index) => {
+                        const eventTime = new Date(event.timestamp.replace('GMT', '').trim());
+                        const eventActualStart = event.startTime ? new Date(event.startTime.replace('GMT', '').trim()) : eventTime;
+                        
+                        if (eventTime >= today && eventTime <= tomorrow) {
+                            if (startTime === null) {
+                                startTime = eventTime;
+                                actualStartTimeForPeriod = eventActualStart;
+                                currentStatus = event.status;
+                            } else {
+                                const duration = (eventTime - startTime) / 1000;
+                                const actualDuration = (eventTime - actualStartTimeForPeriod) / 1000;
+                                
+                                const period = {
+                                    status: currentStatus,
+                                    start: startTime,
+                                    actualStartTime: actualStartTimeForPeriod,
+                                    end: eventTime,
+                                    duration: duration,
+                                    actualDuration: actualDuration,
+                                };
+
+                                if (event.status === "Machine Off") {
+                                    const eventIndex = events.findIndex(e => 
+                                        e.timestamp === event.timestamp
+                                    );
+                                    reason = findStopReason(
+                                        events.slice(eventIndex, eventIndex + 3), 
+                                        eventTime
+                                    );
+                                }
+                                period.reason = reason;
+                                machineData.periods.push(period);
+                                startTime = eventTime;
+                                actualStartTimeForPeriod = eventActualStart;
+                                currentStatus = event.status;
+                            }
+                        }
+                    });
+
+                    if (lastEvent < currentTime) {
+                        const duration = (currentTime - lastEvent) / 1000;
+                        const actualDuration = (currentTime - actualStartTimeForPeriod) / 1000;
+                        
+                        machineData.periods.push({
+                            status: currentStatus,
+                            start: lastEvent,
+                            actualStartTime: actualStartTimeForPeriod,
+                            end: currentTime,
+                            duration: duration,
+                            actualDuration: actualDuration,
+                            reason: currentStatus === "Machine Off" ? reason : "Current Status"
+                        });
+                    }
+
+                    if (currentTime < tomorrow) {
+                        const duration = (tomorrow - currentTime) / 1000;
+                        machineData.periods.push({
+                            status: "Future",
+                            start: currentTime,
+                            actualStartTime: currentTime,
+                            end: tomorrow,
+                            duration: duration,
+                            actualDuration: duration,
+                            reason: "Future time period"
+                        });
+                    }
+                }
+            } else {
+                if (currentTime > today) {
+                    const duration = (currentTime - today) / 1000;
                     machineData.periods.push({
                         status: "Machine Off",
                         start: today,
                         actualStartTime: today,
-                        end: firstEvent,
-                        duration: (firstEvent - today) / 1000,
-                        actualDuration: (firstEvent - today) / 1000,  // Same as duration for non-event periods
+                        end: currentTime,
+                        duration: duration,
+                        actualDuration: duration,
                         reason: "No operation data"
                     });
                 }
-
-                let startTime = null;
-                let currentStatus = null;
-                let reason = "N/A";
-                let actualStartTimeForPeriod = null;
                 
-                statusEvents.forEach((event, index) => {
-                    const eventTime = new Date(event.timestamp.replace('GMT', '').trim());
-                    const eventActualStart = event.startTime ? new Date(event.startTime.replace('GMT', '').trim()) : eventTime;
-                    
-                    if (eventTime >= today && eventTime <= tomorrow) {
-                        if (startTime === null) {
-                            startTime = eventTime;
-                            actualStartTimeForPeriod = eventActualStart;
-                            currentStatus = event.status;
-                        } else {
-                            const duration = (eventTime - startTime) / 1000;
-                            const actualDuration = (eventTime - actualStartTimeForPeriod) / 1000;  // New duration based on actualStartTime
-                            
-                            const period = {
-                                status: currentStatus,
-                                start: startTime,
-                                actualStartTime: actualStartTimeForPeriod,
-                                end: eventTime,
-                                duration: duration,
-                                actualDuration: actualDuration,  // Added new duration field
-                            };
-
-                            if (event.status === "Machine Off") {
-                                const eventIndex = events.findIndex(e => 
-                                    e.timestamp === event.timestamp
-                                );
-                                reason = findStopReason(
-                                    events.slice(eventIndex, eventIndex + 3), 
-                                    eventTime
-                                );
-                            }
-                            period.reason = reason;
-                            machineData.periods.push(period);
-                            startTime = eventTime;
-                            actualStartTimeForPeriod = eventActualStart;
-                            currentStatus = event.status;
-                        }
-                    }
-                });
-
-                if (lastEvent < currentTime) {
-                    const duration = (currentTime - lastEvent) / 1000;
-                    const actualDuration = (currentTime - actualStartTimeForPeriod) / 1000;  // New duration calculation
-                    
-                    machineData.periods.push({
-                        status: currentStatus,
-                        start: lastEvent,
-                        actualStartTime: actualStartTimeForPeriod,
-                        end: currentTime,
-                        duration: duration,
-                        actualDuration: actualDuration,  // Added new duration field
-                        reason: currentStatus === "Machine Off" ? reason : "Current Status"
-                    });
-                }
-
                 if (currentTime < tomorrow) {
                     const duration = (tomorrow - currentTime) / 1000;
                     machineData.periods.push({
@@ -560,379 +547,475 @@
                         actualStartTime: currentTime,
                         end: tomorrow,
                         duration: duration,
-                        actualDuration: duration,  // Same as duration for future periods
+                        actualDuration: duration,
                         reason: "Future time period"
                     });
                 }
             }
+            machineData.periods = machineData.periods.filter((item, index) => machineData.periods.indexOf(item) === index);
+            processedData.push(machineData);
+        });
+
+        return processedData;
+    }
+
+    function createDurationGraph(data, machineColors) {
+    const margin = { top: 40, right: 80, bottom: 60, left: 60 };
+    const width = CONFIG.charts.width - margin.left - margin.right;
+    const height = CONFIG.charts.minHeight - margin.top - margin.bottom;
+
+    const svg = d3.select('#duration-graph')
+        .append('svg')
+        .attr('width', CONFIG.charts.width)
+        .attr('height', CONFIG.charts.minHeight)
+        .append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const x = d3.scaleTime()
+        .domain([today, tomorrow])
+        .range([0, width]);
+
+    // Calculate max off-time across all machines
+    const maxOffTime = d3.max(data, machine => {
+        let totalOffTime = 0;
+        machine.periods.forEach(period => {
+            if (period.status === "Machine Off") {
+                totalOffTime += period.duration;
+            }
+        });
+        return totalOffTime;
+    }) || 86400; // Fallback to day's seconds if no data
+
+    // Round maxOffTime to a nice value for better ticks
+    const roundedMax = Math.ceil(maxOffTime / 3600) * 3600; // Round up to nearest hour
+
+    const y = d3.scaleLinear()
+        .domain([0, roundedMax])
+        .range([height, 0]);
+
+    svg.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(x).ticks(12).tickFormat(d3.timeFormat("%H:%M")));
+
+    // Create evenly spaced tick values
+    const tickCount = 8; // Number of ticks desired
+    const tickStep = roundedMax / tickCount;
+    const tickValues = Array.from({length: tickCount + 1}, (_, i) => i * tickStep);
+
+    // Format function for displaying time nicely
+    const formatTime = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        
+        if (hours === 0) {
+            return minutes > 0 ? `${minutes}m` : "0";
+        } else if (minutes === 0) {
+            return `${hours}h`;
         } else {
-            if (currentTime > today) {
-                const duration = (currentTime - today) / 1000;
-                machineData.periods.push({
-                    status: "Machine Off",
-                    start: today,
-                    actualStartTime: today,
-                    end: currentTime,
-                    duration: duration,
-                    actualDuration: duration,  // Same as duration for no data periods
-                    reason: "No operation data"
-                });
-            }
-            
-            if (currentTime < tomorrow) {
-                const duration = (tomorrow - currentTime) / 1000;
-                machineData.periods.push({
-                    status: "Future",
-                    start: currentTime,
-                    actualStartTime: currentTime,
-                    end: tomorrow,
-                    duration: duration,
-                    actualDuration: duration,  // Same as duration for future periods
-                    reason: "Future time period"
-                });
-            }
+            return `${hours}h ${minutes}m`;
         }
-        machineData.periods = machineData.periods.filter((item, index) => machineData.periods.indexOf(item) === index);
-        processedData.push(machineData);
+    };
+
+    svg.append('g')
+        .call(d3.axisLeft(y)
+            .tickValues(tickValues)
+            .tickFormat(d => formatTime(d)));
+
+    const line = d3.line()
+        .x(d => x(d.time))
+        .y(d => y(d.duration));
+
+    data.forEach(machine => {
+        let cumulativeOffTime = 0;
+        const lineData = [];
+        const offPoints = []; // Array to store specific off-time points
+        
+        machine.periods.forEach(period => {
+            if (period.status !== "Future") {
+                const startTime = period.start < today ? today : period.start;
+                const endTime = period.end;
+                
+                lineData.push({
+                    time: startTime,
+                    duration: cumulativeOffTime
+                });
+
+                if (period.status === "Machine Off") {
+                    cumulativeOffTime += period.duration;
+                    
+                    // Store the midpoint of the off period for point visualization
+                    const midTime = new Date((startTime.getTime() + endTime.getTime()) / 2);
+                    offPoints.push({
+                        time: midTime,
+                        duration: cumulativeOffTime - (period.duration / 2) // Position in the middle of the line segment
+                    });
+                }
+
+                lineData.push({
+                    time: endTime,
+                    duration: cumulativeOffTime
+                });
+            }
+        });
+
+        svg.append('path')
+            .datum(lineData)
+            .attr('fill', 'none')
+            .attr('stroke', machineColors(machine.machine))
+            .attr('stroke-width', 2)
+            .attr('d', line)
+            .on('mouseover', function(event) {
+                createTooltip(machine.machine, event);
+            })
+            .on('mouseout', () => d3.selectAll('.tooltip').remove());
+        
+        // Only add points for off-time periods if there's a single machine
+        // if (data.length === 1) {
+        //     svg.selectAll(".off-point")
+        //         .data(offPoints)
+        //         .enter()
+        //         .append("circle")
+        //         .attr("class", "off-point")
+        //         .attr("cx", d => x(d.time))
+        //         .attr("cy", d => y(d.duration))
+        //         .attr("r", 3)
+        //         .attr("fill", machineColors(machine.machine))
+        //         .attr("stroke", "#fff")
+        //         .attr("stroke-width", 1)
+        //         .on('mouseover', function(event) {
+        //             createTooltip(machine.machine, event);
+        //         })
+        //         .on('mouseout', () => d3.selectAll('.tooltip').remove());
+        // }
     });
 
-    return processedData;
+    const legend = svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${width + 20}, 0)`);
+
+    data.forEach((d, i) => {
+        const legendGroup = legend.append('g')
+            .attr('transform', `translate(0, ${i * 20})`);
+
+        legendGroup.append('rect')
+            .attr('width', 10)
+            .attr('height', 10)
+            .attr('fill', machineColors(d.machine));
+
+        legendGroup.append('text')
+            .attr('x', 12)
+            .attr('y', 8)
+            .text(d.machine)
+            .style('font-size', '9px');
+    });
 }
+    function updateChart(data, reasonData, machineData) {
+        let filteredReasonData = reasonData;
+        let filteredMachineData = machineData;
+        let filteredData = data;
 
-        function updateChart(data, reasonData, machineData) {
-            // Only filter if there are selections, otherwise show all
-    let filteredReasonData = reasonData;
-    let filteredMachineData = machineData;
-    let filteredData = data;
-
-    // Filter reason data only if there are selections
-    if (selectedReasons.size > 0) {
-        filteredReasonData = reasonData.filter(d => selectedReasons.has(d.reason));
-    }
-
-    // Filter machine data only if there are selections
-    if (selectedMachines.size > 0) {
-        filteredMachineData = machineData.filter(d => selectedMachines.has(d.machine));
-        filteredData = data.filter(d => selectedMachines.has(d.machine));
-    }
-
-    // Clear existing charts
-    document.getElementById('timeline-chart').innerHTML = '';
-    document.getElementById('reason-pie').innerHTML = '';
-    document.getElementById('machine-pie').innerHTML = '';
-    document.getElementById('reason-bar').innerHTML = '';
-    document.getElementById('machine-bar').innerHTML = '';
-
-    // Remove any remaining tooltips
-    d3.selectAll('.tooltip').remove();
-
-    const reasonColors = d3.scaleOrdinal()
-        .domain([
-            "Maintence",
-            "Needle Breakage",
-            "No Order / No Program",
-            "No Yarn",
-            "Power",
-            "Program Change",
-            "Roll Cutting",
-            "Yarn Breakage",
-            "N/A",
-            "No operation data",
-            "Machine On",
-            "Future"
-        ])
-        .range([
-            "#0040ff",
-            "#FFA999",
-            "#99cF99",
-            "#FFdC99",
-            "#11EEEE",
-            "#cCFF",
-            "#FFFFAA",
-            "#FF22FF",
-            "#ff1a1a",
-            "#FFAACC",
-            "#00e600",
-            "#f0f0f0"
-        ]);
-
-    const machineColors = d3.scaleOrdinal()
-        .domain(machineData.map(d => d.machine))
-        .range(d3.schemeTableau10);
-
-    const totalHeight = Math.max(CONFIG.charts.minHeight, filteredData.length * CONFIG.charts.heightPerMachine);
-    const width = CONFIG.charts.width - CONFIG.charts.margin.left - CONFIG.charts.margin.right;
-    const height = totalHeight - CONFIG.charts.margin.top - CONFIG.charts.margin.bottom;
-
-    // Create new charts with filtered data
-    createPieChart(filteredReasonData, 'reason-pie', 'Reason wise NPT', reasonColors);
-    createPieChart(filteredMachineData, 'machine-pie', 'Machine wise NPT', machineColors);
-    createBarChart(filteredReasonData, 'reason-bar', 'Reason wise NPT', reasonColors);
-    createBarChart(filteredMachineData, 'machine-bar', 'Machine wise NPT', machineColors);
-
-            const svg = d3.select('#timeline-chart')
-                .append('svg')
-                .attr('width', CONFIG.charts.width)
-                .attr('height', totalHeight)
-                .append('g')
-                .attr('transform', `translate(${CONFIG.charts.margin.left},${CONFIG.charts.margin.top})`);
-
-            const y = d3.scaleBand()
-                .domain(data.map(d => d.machine))
-                .range([0, height])
-                .padding(0.2);
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-
-            const x = d3.scaleTime()
-                .domain([today, tomorrow])
-                .range([0, width]);
-
-            const machineGroups = svg.selectAll(".machine-group")
-                .data(data)
-                .join("g")
-                .attr("class", "machine-group")
-                .attr("transform", d => `translate(0,${y(d.machine) + (y.bandwidth() - CONFIG.charts.barHeight) / 2})`);
-
-            data.forEach((machine, machineIndex) => {
-                // const startOfToday = new Date();
-                // startOfToday.setHours(0, 0, 0, 0);
-                // const endOfToday = new Date();
-                // endOfToday.setHours(23, 59, 59, 999);
-                machineGroups
-                    .filter(d => d.machine === machine.machine)
-                    .selectAll("rect")
-                    .data(machine.periods)
-                    .join("rect")
-                    .attr("x", d => {
-                         // ALWAYS use startOfToday if the period starts before today
-                        const barStart = d.start < today ? today : d.start;
-                        return x(barStart); // Correctly calculate x position
-                    })
-                    .attr("width", d => {
-                        const barStart = d.start < today ? today : d.start;
-                        const barEnd = d.end 
-                        return Math.max(0, x(barEnd) - x(barStart));
-                    })
-                    .attr("height", CONFIG.charts.barHeight)
-                    .attr("fill", d => {
-                        if (d.status === "Machine On") return reasonColors("Machine On");
-                        if (d.status === "Future") return reasonColors("Future");
-                        
-                        // For Machine Off status, use the specific reason color
-                        return reasonColors(d.reason || "N/A");
-                    })
-                    .attr("class", "bar")
-                    .on("mouseover", function(event, d) {
-                        let tooltipContent = `
-                            Status: ${d.status}<br/>
-
-                            Start: ${d.start === d.actualStartTime ? formatDateTime(d.start) : formatDateTime(d.actualStartTime) }<br/>
-                            End: ${formatDateTime(d.end)}<br/>
-                            ${d.actualDuration != d.duration ? "Duration: " + formatSeconds(d.actualDuration.toFixed(1)) : "Duration: " + formatSeconds(d.duration.toFixed(1))}s 
-                            `;
-                        if (d.status === "Machine Off") {
-                            tooltipContent += `<br/> Reason: ${d.reason}`;
-                        }
-
-                        createTooltip(tooltipContent, event);
-                    })
-                    .on("mouseout", function() {
-                        d3.selectAll(".tooltip").remove();
-                    });
-            });
-
-            // Add axes
-            const xAxis = d3.axisBottom(x)
-                .ticks(24)
-                .tickFormat(d3.timeFormat("%H:%M"));
-
-            const yAxis = d3.axisLeft(y);
-
-            svg.append("g")
-                .attr("class", "axis")
-                .attr("transform", `translate(0,${height})`)
-                .call(xAxis);
-
-            svg.append("g")
-    .attr("class", "axis")
-    .call(yAxis)
-    .selectAll(".tick line")  // Target the tick lines specifically
-    .style("stroke", machineName => {
-        // Find the last period for this machine
-        const machineData = filteredData.find(d => d.machine === machineName);
-        const lastPeriod = machineData.periods[machineData.periods.length - 2];
-        
-        let color = 'black'; // Default color
-        
-        if (lastPeriod.status === "Machine On") {    
-            color = '#22aa11'; // Green for running
-        } else if (lastPeriod.status === "Machine Off") {
-            // Use color based on the reason for stoppage
-            const reasonColors = {
-                "Maintenance": "#0040ff",
-                "Needle Breakage": "#FFA999",
-                "No Order / No Program": "#99cF99",
-                "No Yarn": "#FFdC99",
-                "Power": "#11EEEE",
-                "Program Change": "#cCFF",
-                "Roll Cutting": "#FFFFAA",
-                "Yarn Breakage": "#FF22FF",
-                "N/A": "#ff1a1a",
-                "No operation data": "#FFAACC"
-            };
-            color = reasonColors[lastPeriod.reason] || '#ff1a1a'; // Red if no matching reason
+        if (selectedReasons.size > 0) {
+            filteredReasonData = reasonData.filter(d => selectedReasons.has(d.reason));
         }
-        
-        return color;
-    })
-    .attr("stroke-width", 2)  // Make the line a bit thicker
-    .attr("opacity", 0.7);    // Add some transparency
 
-            svg.append("text")
-                .attr("x", width / 2)
-                .attr("y", height + 35)
-                .attr("text-anchor", "middle")
-                .text("Duration (seconds)");
+        if (selectedMachines.size > 0) {
+            filteredMachineData = machineData.filter(d => selectedMachines.has(d.machine));
+            filteredData = data.filter(d => selectedMachines.has(d.machine));
+        }
 
-            // Add legend
-            const legend = svg.append("g")
-                .attr("class", "legend")
-                .attr("transform", `translate(${width + 20}, 0)`);
+        document.getElementById('timeline-chart').innerHTML = '';
+        document.getElementById('duration-graph').innerHTML = '';
+        document.getElementById('reason-pie').innerHTML = '';
+        document.getElementById('machine-pie').innerHTML = '';
+        document.getElementById('reason-bar').innerHTML = '';
+        document.getElementById('machine-bar').innerHTML = '';
 
-            const legendItems = [
-                { label: "Machine On", color: reasonColors("Machine On") },
-                { label: "Future", color: reasonColors("Future") },
-                ...reasonData.map(d => ({ label: d.reason, color: reasonColors(d.reason) }))
+        d3.selectAll('.tooltip').remove();
+
+        const reasonColors = d3.scaleOrdinal()
+            .domain([
+                "Maintenance",
+                "Needle Breakage",
+                "No Order / No Program",
+                "No Yarn",
+                "Power",
+                "Program Change",
+                "Roll Cutting",
+                "Yarn Breakage",
+                "N/A",
+                "No operation data",
+                "Machine On",
+                "Future"
+            ])
+            .range([
+                "#0040ff",
+                "#FFA999",
+                "#99cF99",
+                "#FFdC99",
+                "#11EEEE",
+                "#cCFF",
+                "#FFFFAA",
+                "#FF22FF",
+                "#ff1a1a",
+                "#FFAACC",
+                "#00e600",
+                "#f0f0f0"
+            ]);
+
+        const machineColors = d3.scaleOrdinal()
+            .domain(machineData.map(d => d.machine))
+            .range(d3.schemeTableau10);
+
+        const totalHeight = Math.max(CONFIG.charts.minHeight, filteredData.length * CONFIG.charts.heightPerMachine);
+        const width = CONFIG.charts.width - CONFIG.charts.margin.left - CONFIG.charts.margin.right;
+        const height = totalHeight - CONFIG.charts.margin.top - CONFIG.charts.margin.bottom;
+
+        createDurationGraph(filteredData, machineColors);
+        createPieChart(filteredReasonData, 'reason-pie', 'Reason wise NPT', reasonColors);
+        createPieChart(filteredMachineData, 'machine-pie', 'Machine wise NPT', machineColors);
+        createBarChart(filteredReasonData, 'reason-bar', 'Reason wise NPT', reasonColors);
+        createBarChart(filteredMachineData, 'machine-bar', 'Machine wise NPT', machineColors);
+
+        const svg = d3.select('#timeline-chart')
+            .append('svg')
+            .attr('width', CONFIG.charts.width)
+            .attr('height', totalHeight)
+            .append('g')
+            .attr('transform', `translate(${CONFIG.charts.margin.left},${CONFIG.charts.margin.top})`);
+
+        const y = d3.scaleBand()
+            .domain(data.map(d => d.machine))
+            .range([0, height])
+            .padding(0.2);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        const x = d3.scaleTime()
+            .domain([today, tomorrow])
+            .range([0, width]);
+
+        const machineGroups = svg.selectAll(".machine-group")
+            .data(filteredData)
+            .join("g")
+            .attr("class", "machine-group")
+            .attr("transform", d => `translate(0,${y(d.machine) + (y.bandwidth() - CONFIG.charts.barHeight) / 2})`);
+
+        filteredData.forEach((machine, machineIndex) => {
+            machineGroups
+                .filter(d => d.machine === machine.machine)
+                .selectAll("rect")
+                .data(machine.periods)
+                .join("rect")
+                .attr("x", d => {
+                    const barStart = d.start < today ? today : d.start;
+                    return x(barStart);
+                })
+                .attr("width", d => {
+                    const barStart = d.start < today ? today : d.start;
+                    const barEnd = d.end;
+                    return Math.max(0, x(barEnd) - x(barStart));
+                })
+                .attr("height", CONFIG.charts.barHeight)
+                .attr("fill", d => {
+                    if (d.status === "Machine On") return reasonColors("Machine On");
+                    if (d.status === "Future") return reasonColors("Future");
+                    return reasonColors(d.reason || "N/A");
+                })
+                .attr("class", "bar")
+                .on("mouseover", function(event, d) {
+                    let tooltipContent = `
+                        Status: ${d.status}<br/>
+                        Start: ${d.start === d.actualStartTime ? formatDateTime(d.start) : formatDateTime(d.actualStartTime)}<br/>
+                        End: ${formatDateTime(d.end)}<br/>
+                        ${d.actualDuration != d.duration ? "Duration: " + formatSeconds(d.actualDuration.toFixed(1)) : "Duration: " + formatSeconds(d.duration.toFixed(1))}s 
+                    `;
+                    if (d.status === "Machine Off") {
+                        tooltipContent += `<br/> Reason: ${d.reason}`;
+                    }
+                    createTooltip(tooltipContent, event);
+                })
+                .on("mouseout", function() {
+                    d3.selectAll(".tooltip").remove();
+                });
+        });
+
+        const xAxis = d3.axisBottom(x)
+            .ticks(24)
+            .tickFormat(d3.timeFormat("%H:%M"));
+
+        const yAxis = d3.axisLeft(y);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(xAxis);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .call(yAxis)
+            .selectAll(".tick line")
+            .style("stroke", machineName => {
+                const machineData = filteredData.find(d => d.machine === machineName);
+                const lastPeriod = machineData?.periods[machineData.periods.length - 2];
+                let color = 'black';
+                if (lastPeriod?.status === "Machine On") {
+                    color = '#22aa11';
+                } else if (lastPeriod?.status === "Machine Off") {
+                    const reasonColors = {
+                        "Maintenance": "#0040ff",
+                        "Needle Breakage": "#FFA999",
+                        "No Order / No Program": "#99cF99",
+                        "No Yarn": "#FFdC99",
+                        "Power": "#11EEEE",
+                        "Program Change": "#cCFF",
+                        "Roll Cutting": "#FFFFAA",
+                        "Yarn Breakage": "#FF22FF",
+                        "N/A": "#ff1a1a",
+                        "No operation data": "#FFAACC"
+                    };
+                    color = reasonColors[lastPeriod.reason] || '#ff1a1a';
+                }
+                return color;
+            })
+            .attr("stroke-width", 2)
+            .attr("opacity", 0.7);
+
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height + 35)
+            .attr("text-anchor", "middle")
+            .text("Duration (seconds)");
+
+        const legend = svg.append("g")
+            .attr("class", "legend")
+            .attr("transform", `translate(${width + 20}, 0)`);
+
+        const legendItems = [
+            { label: "Machine On", color: reasonColors("Machine On") },
+            { label: "Future", color: reasonColors("Future") },
+            ...reasonData.map(d => ({ label: d.reason, color: reasonColors(d.reason) }))
+        ];
+
+        legendItems.forEach((item, i) => {
+            const legendGroup = legend.append("g")
+                .attr("transform", `translate(0, ${i * 20})`);
+
+            legendGroup.append("rect")
+                .attr("width", 15)
+                .attr("height", 15)
+                .attr("fill", item.color);
+
+            legendGroup.append("text")
+                .attr("x", 20)
+                .attr("y", 12)
+                .text(item.label)
+                .style("font-size", "12px");
+        });
+    }
+
+    function updateCheckboxes(data, reasonData, machineData) {
+        const reasonCheckboxes = document.getElementById('reason-checkboxes');
+        const machineCheckboxes = document.getElementById('machine-checkboxes');
+
+        reasonCheckboxes.innerHTML = '';
+        machineCheckboxes.innerHTML = '';
+
+        reasonData.forEach(d => {
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox-item';
+            checkbox.innerHTML = `
+                <input type="checkbox" id="reason-${d.reason}" 
+                       ${selectedReasons.has(d.reason) ? 'checked' : ''}>
+                <label for="reason-${d.reason}">${d.reason}</label>
+            `;
+            checkbox.querySelector('input').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    selectedReasons.add(d.reason);
+                } else {
+                    selectedReasons.delete(d.reason);
+                }
+                saveSelections();
+                updateChart(data, reasonData, machineData);
+            });
+            reasonCheckboxes.appendChild(checkbox);
+        });
+
+        machineData.forEach(d => {
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox-item';
+            checkbox.innerHTML = `
+                <input type="checkbox" id="machine-${d.machine}"
+                       ${selectedMachines.has(d.machine) ? 'checked' : ''}>
+                <label for="machine-${d.machine}">${d.machine}</label>
+            `;
+            checkbox.querySelector('input').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    selectedMachines.add(d.machine);
+                } else {
+                    selectedMachines.delete(d.machine);
+                }
+                saveSelections();
+                updateChart(data, reasonData, machineData);
+            });
+            machineCheckboxes.appendChild(checkbox);
+        });
+    }
+
+    fetch(`${CONFIG.api}/api/mc-graph`)
+        .then(response => response.json())
+        .then(data => {
+            let mc_no = localStorage.getItem("user");
+            mc_no = JSON.parse(mc_no);
+            data.machines = mc_no.machine === "All" ? data.machines : [mc_no.machine];
+            const processedData = processFetchedData(data);
+            
+            let reasonwise_npt = [
+                { reason: "Maintenance", value: 0, count: 0 },
+                { reason: "Needle Breakage", value: 0, count: 0 },
+                { reason: "No Order / No Program", value: 0, count: 0 },
+                { reason: "No Yarn", value: 0, count: 0 },
+                { reason: "Power", value: 0, count: 0 },
+                { reason: "Program Change", value: 0, count: 0 },
+                { reason: "Roll Cutting", value: 0, count: 0 },
+                { reason: "Yarn Breakage", value: 0, count: 0 },
+                { reason: "N/A", value: 0, count: 0 },
+                { reason: "No operation data", value: 0, count: 0 }
             ];
 
-            legendItems.forEach((item, i) => {
-                const legendGroup = legend.append("g")
-                    .attr("transform", `translate(0, ${i * 20})`);
-
-                legendGroup.append("rect")
-                    .attr("width", 15)
-                    .attr("height", 15)
-                    .attr("fill", item.color);
-
-                legendGroup.append("text")
-                    .attr("x", 20)
-                    .attr("y", 12)
-                    .text(item.label)
-                    .style("font-size", "12px");
-            });
-}
-
-function updateCheckboxes(data, reasonData, machineData) {
-    const reasonCheckboxes = document.getElementById('reason-checkboxes');
-    const machineCheckboxes = document.getElementById('machine-checkboxes');
-
-    // Clear existing checkboxes
-    reasonCheckboxes.innerHTML = '';
-    machineCheckboxes.innerHTML = '';
-
-    // Add reason checkboxes
-    reasonData.forEach(d => {
-        const checkbox = document.createElement('div');
-        checkbox.className = 'checkbox-item';
-        checkbox.innerHTML = `
-            <input type="checkbox" id="reason-${d.reason}" 
-                   ${selectedReasons.has(d.reason) ? 'checked' : ''}>
-            <label for="reason-${d.reason}">${d.reason}</label>
-        `;
-        checkbox.querySelector('input').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                selectedReasons.add(d.reason);
-            } else {
-                selectedReasons.delete(d.reason);
-            }
-            saveSelections();
-            updateChart(data, reasonData, machineData);
-        });
-        reasonCheckboxes.appendChild(checkbox);
-    });
-
-    // Add machine checkboxes
-    machineData.forEach(d => {
-        const checkbox = document.createElement('div');
-        checkbox.className = 'checkbox-item';
-        checkbox.innerHTML = `
-            <input type="checkbox" id="machine-${d.machine}"
-                   ${selectedMachines.has(d.machine) ? 'checked' : ''}>
-            <label for="machine-${d.machine}">${d.machine}</label>
-        `;
-        checkbox.querySelector('input').addEventListener('change', (e) => {
-            if (e.target.checked) {
-                selectedMachines.add(d.machine);
-            } else {
-                selectedMachines.delete(d.machine);
-            }
-            saveSelections();
-            updateChart(data, reasonData, machineData);
-        });
-        machineCheckboxes.appendChild(checkbox);
-    });
-}
-        // Initial data fetch and processing
-        fetch(`${CONFIG.api}/api/mc-graph`)
-            .then(response => response.json())
-            .then(data => {
-                let mc_no = localStorage.getItem("user");
-                mc_no = JSON.parse(mc_no);
-                console.log([mc_no.machine])
-                data.machines = mc_no.machine === "All" ? data.machines : [mc_no.machine]
-                console.log(data)
-                const processedData = processFetchedData(data);
-                console.log(processedData)
-                let reasonwise_npt = [
-                    { reason: "Maintenance", value: 0, count:0 },
-                    { reason: "Needle Breakage", value: 0, count:0 },
-                    { reason: "No Order / No Program", value: 0, count:0 },
-                    { reason: "No Yarn", value: 0, count:0 },
-                    { reason: "Power", value: 0, count:0 },
-                    { reason: "Program Change", value: 0, count:0 },
-                    { reason: "Roll Cutting", value: 0, count:0 },
-                    { reason: "Yarn Breakage", value: 0, count:0 },
-                    { reason: "N/A", value: 0, count:0 },
-                    { reason: "No operation data", value: 0, count:0 }
-                ];
-
-                let machinewise_npt = [];
-                
-                processedData.forEach(data => {
-                    machinewise_npt.push({"machine": data.machine, value: 0});
-                    let length = machinewise_npt.length - 1;
-                    data.periods.forEach(element => {
-                        if(element.status === "Machine Off"){
-                            machinewise_npt[length].value += element.duration;
-                            for(let i = 0; i < reasonwise_npt.length; i++){
-                                reasonwise_npt[i].value += reasonwise_npt[i].reason === element.reason ? element.duration : 0;
-                                reasonwise_npt[i].count += reasonwise_npt[i].reason === element.reason ? 1 : 0;
-                            }
-                            // console.log( reasonwise_npt)
+            let machinewise_npt = [];
+            
+            processedData.forEach(data => {
+                machinewise_npt.push({"machine": data.machine, value: 0});
+                let length = machinewise_npt.length - 1;
+                data.periods.forEach(element => {
+                    if(element.status === "Machine Off"){
+                        machinewise_npt[length].value += element.duration;
+                        for(let i = 0; i < reasonwise_npt.length; i++){
+                            reasonwise_npt[i].value += reasonwise_npt[i].reason === element.reason ? element.duration : 0;
+                            reasonwise_npt[i].count += reasonwise_npt[i].reason === element.reason ? 1 : 0;
                         }
-                    });
+                    }
                 });
-                // Initialize settings panel
-                initializeSettings();
-                
-                // Update checkboxes with initial data
-                updateCheckboxes(processedData,reasonwise_npt, machinewise_npt);
-                
-                // Initial chart update
-                updateChart(processedData, reasonwise_npt, machinewise_npt);
-                
-            })
-            .catch(error => console.error('Error fetching data:', error));
+            });
+            
+            initializeSettings();
+            updateCheckboxes(processedData, reasonwise_npt, machinewise_npt);
+            updateChart(processedData, reasonwise_npt, machinewise_npt);
+        })
+        .catch(error => console.error('Error fetching data:', error));
 
-        // Auto refresh every 5 minutes
-        setInterval(() => {
-            location.reload();
-        }, CONFIG.refreshInterval);
+    setInterval(() => {
+        location.reload();
+    }, CONFIG.refreshInterval);
     </script>
 </body>
 </html>
