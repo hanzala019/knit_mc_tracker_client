@@ -22,12 +22,13 @@
             cursor: pointer;
             padding: 5px;
             margin-right: 20px;
+            
         }
 
         .settings-panel {
             position: absolute;
-            right: 0;
-            top: 100%;
+            right: 10px;
+            top: 40px;
             background: white;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -82,6 +83,24 @@
         .reset-button:hover {
             background-color: #e0e0e0;
         }
+        .shift-button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .shift-button.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .shift-button:hover:not(.active) {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -89,16 +108,22 @@
     
     <nav class="navbar">
         <div class="logo">LOGO</div>
-        <div class="nav-links" >
+        <div class="nav-links">
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
-            <!-- <a href="./report.html" class="nav-link">Report</a>
-            <a href="./simulate.html" class="nav-link">Simulation</a> -->
+            <a href="./report.html" class="nav-link">Report</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
         </div>
         <div class="user-section">
             <button class="logout-button">Logout</button>
         </div>
     </nav>
+
+    <div class="shift-toggle" style="margin: 10px 0; text-align: center;">
+        <button id="day-shift" class="shift-button">Day Shift (8 AM - 8 PM)</button>
+        <button id="night-shift" class="shift-button">Night Shift (8 PM - 8 AM)</button>
+    </div>
+
     <div class="container">
         <section class="chart-section">
             <div class="chart-header">
@@ -115,7 +140,7 @@
                 <div class="settings-toggle">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l-.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
                 </div>
                 <div class="settings-panel">
@@ -151,15 +176,24 @@
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script>
-    
+    let currentShift = determineCurrentShift();
+    let selectedReasons = new Set(JSON.parse(localStorage.getItem('selectedReasons')) || []);
+    let selectedMachines = new Set(JSON.parse(localStorage.getItem('selectedMachines')) || []);
+    let chartData = null;
+    let reasonData = null;
+    let machineData = null;
+
     function runningTime(){
         document.getElementById("currentDate").textContent = "Running Time: " + formatSeconds(getCurrentTimeInMilliSeconds());
     }
-    setInterval(runningTime, 1000)
-    runningTime()
-    
-    let selectedReasons = new Set(JSON.parse(localStorage.getItem('selectedReasons')) || []);
-    let selectedMachines = new Set(JSON.parse(localStorage.getItem('selectedMachines')) || []);
+    setInterval(runningTime, 1000);
+    runningTime();
+
+    function determineCurrentShift() {
+        const now = new Date();
+        const hour = now.getHours();
+        return (hour >= 8 && hour < 20) ? 'day' : 'night';
+    }
 
     function initializeSettings() {
         const settingsToggle = document.querySelector('.settings-toggle');
@@ -167,7 +201,13 @@
 
         settingsToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            settingsPanel.classList.toggle('active');
+            console.log('Gear icon clicked');
+            if (chartData && reasonData && machineData) {
+                settingsPanel.classList.toggle('active');
+                console.log('Settings panel toggled, visible:', settingsPanel.classList.contains('active'));
+            } else {
+                console.log('Data not yet loaded, cannot show settings');
+            }
         });
 
         const resetButton = document.querySelector('.reset-button');
@@ -177,10 +217,11 @@
             localStorage.removeItem('selectedReasons');
             localStorage.removeItem('selectedMachines');
             const checkboxes = document.querySelectorAll('.checkbox-item input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            location.reload()
+            checkboxes.forEach(checkbox => checkbox.checked = false);
+            if (chartData && reasonData && machineData) {
+                updateChart(chartData, reasonData, machineData);
+            }
+            settingsPanel.classList.remove('active');
         });
 
         document.addEventListener('click', (e) => {
@@ -195,27 +236,120 @@
         localStorage.setItem('selectedMachines', JSON.stringify([...selectedMachines]));
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const links = document.querySelectorAll(".nav-link");
-        const currentPage = window.location.pathname.split("/").pop().split(".")[0];
-        links.forEach(link => {
-            if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
-                link.classList.add("active");
-            }
-        });
+    // Initialize from cache or fetch new data
+document.addEventListener("DOMContentLoaded", () => {
+    const links = document.querySelectorAll(".nav-link");
+    const currentPage = window.location.pathname.split("/").pop().split(".")[0];
+    links.forEach(link => {
+        if (link.getAttribute("href").split("/").pop().split(".")[0] === currentPage) {
+            link.classList.add("active");
+        }
     });
 
-    function findStopReason(events, stopTime) {
-        const nextButton = events.find(event => 
-            event.status === "Button Pressed" && 
-            new Date(event.timestamp.replace('GMT', '').trim()) > new Date(stopTime)
-        );
-        return nextButton?.reason || "N/A";
+    const dayShiftBtn = document.getElementById('day-shift');
+    const nightShiftBtn = document.getElementById('night-shift');
+
+    // Set initial active button based on current shift
+    if (currentShift === 'day') {
+        dayShiftBtn.classList.add('active');
+        nightShiftBtn.classList.remove('active');
+    } else {
+        nightShiftBtn.classList.add('active');
+        dayShiftBtn.classList.remove('active');
     }
 
+    dayShiftBtn.addEventListener('click', () => {
+        currentShift = 'day';
+        dayShiftBtn.classList.add('active');
+        nightShiftBtn.classList.remove('active');
+        fetchAndUpdateCharts();
+    });
+
+    nightShiftBtn.addEventListener('click', () => {
+        currentShift = 'night';
+        nightShiftBtn.classList.add('active');
+        dayShiftBtn.classList.remove('active');
+        fetchAndUpdateCharts();
+    });
+
+    initializeSettings();
+    
+    // Try to load from cache first
+    const cachedData = localStorage.getItem('chartDataCache');
+    if (cachedData) {
+        try {
+            const { reasonData: cachedReasonData, machineData: cachedMachineData, timestamp } = JSON.parse(cachedData);
+            const cacheTime = new Date(timestamp);
+            const now = new Date();
+            // If cache is less than 5 minutes old, use it
+            if ((now - cacheTime) < 5 * 60 * 1000) {
+                console.log('Using cached data');
+                reasonData = cachedReasonData;
+                machineData = cachedMachineData;
+                // Still fetch to update the data but don't block UI
+                fetchAndUpdateCharts();
+                return;
+            }
+        } catch (e) {
+            console.error('Error parsing cached data:', e);
+        }
+    }
+    
+    // No valid cache, fetch new data
+    fetchAndUpdateCharts();
+});
+
+    function findStopReason(events, stopTime) {
+    const stopTimeObj = new Date(stopTime instanceof Date ? stopTime : stopTime.replace('GMT', '').trim());
+    
+    // Look for button press events after this stop time
+    const nextButtons = events.filter(event => 
+        event.status === "Button Pressed" && 
+        new Date(event.timestamp.replace('GMT', '').trim()) > stopTimeObj
+    ).sort((a, b) => 
+        new Date(a.timestamp.replace('GMT', '').trim()) - 
+        new Date(b.timestamp.replace('GMT', '').trim())
+    );
+    
+    // Get the first button press after the stop
+    if (nextButtons.length > 0) {
+        return nextButtons[0].reason || "N/A";
+    }
+    
+    return "N/A";
+}
+
+function getLastStatusBeforeShift(events, shiftStart) {
+    const sortedEvents = events
+        .filter(event => event.status === "Machine On" || event.status === "Machine Off")
+        .sort((a, b) => new Date(a.timestamp.replace('GMT', '').trim()) - 
+                       new Date(b.timestamp.replace('GMT', '').trim()));
+    
+    const eventsBeforeShift = sortedEvents.filter(event => 
+        new Date(event.timestamp.replace('GMT', '').trim()) < shiftStart
+    );
+    
+    const lastEvent = eventsBeforeShift.length > 0 ? eventsBeforeShift[eventsBeforeShift.length - 1] : null;
+    
+    if (lastEvent) {
+        const lastEventTime = new Date(lastEvent.timestamp.replace('GMT', '').trim());
+        return {
+            status: lastEvent.status,
+            startTime: lastEventTime,
+            reason: lastEvent.status === "Machine Off" ? findStopReason(events, lastEventTime) : "N/A"
+        };
+    } else {
+        return {
+            status: "Machine Off",
+            startTime: shiftStart,
+            reason: "No operation data"
+        };
+    }
+}
+
     const CONFIG = {
-        api:  "https://knit-mc-tracker-server.onrender.com",
-        refreshInterval: 600000,
+        api: "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com",
+        refreshInterval: 60000,
         charts: {
             margin: { top: 20, right: 10, bottom: 20, left: 90 },
             width: 800,
@@ -223,10 +357,6 @@
             heightPerMachine: 25,
             barHeight: 10
         },
-        timelines: {
-            endTime: '20:00',
-            warningColor: '#ff6b6b'
-        }
     };
 
     function formatSeconds(seconds) {
@@ -242,7 +372,7 @@
         if (secs > 0) result.push(`${secs}sec`);
         return result.join(' ');
     }
-
+    
     function getCurrentTimeInMilliSeconds(){
         const now = Date.now();
         const startOfToday = new Date();
@@ -344,12 +474,7 @@
 
     function createBarChart(data, containerId, title, colorScale) {
         const size = getContainerSize(containerId);
-        const margin = {
-            top: 40,
-            right: 20,
-            bottom: 100,
-            left: 60
-        };
+        const margin = { top: 40, right: 20, bottom: 100, left: 60 };
         const width = size.width - margin.left - margin.right;
         const height = size.height - margin.top - margin.bottom;
 
@@ -413,231 +538,276 @@
             .on('mouseout', () => d3.selectAll('.tooltip').remove());
     }
 
-    function processFetchedData(data) {
-        const processedData = [];
-        const currentTime = new Date();
-        
-        data.machines.forEach(machineName => {
-            const machineData = {
-                machine: machineName,
-                periods: []
-            };
-            
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0, 0, 0, 0);
-            
-            const events = data.result[machineName] || [];
-            
-            if (events.length > 0) {
-                const statusEvents = events.filter(event => event.status === "Machine On" || event.status === "Machine Off")
-                    .sort((a, b) => new Date(a.timestamp.replace('GMT', '').trim()) - 
-                                  new Date(b.timestamp.replace('GMT', '').trim()));
-                
-                if (statusEvents.length > 0) {
-                    const firstEvent = new Date(statusEvents[0].timestamp.replace('GMT', '').trim());
-                    let lastEvent = new Date(statusEvents[statusEvents.length - 1].timestamp.replace('GMT', '').trim());
+    function determineCurrentShift() {
+    const now = new Date();
+    const hour = now.getHours();
+    return (hour >= 8 && hour < 20) ? 'day' : 'night';
+}
 
-                    if (firstEvent >= today && firstEvent <= currentTime) {
-                        machineData.periods.push({
-                            status: "Machine Off",
-                            start: today,
-                            actualStartTime: today,
-                            end: firstEvent,
-                            duration: (firstEvent - today) / 1000,
-                            actualDuration: (firstEvent - today) / 1000,
-                            reason: "No operation data"
-                        });
-                    }
-
-                    let startTime = null;
-                    let currentStatus = null;
-                    let reason = "N/A";
-                    let actualStartTimeForPeriod = null;
-                    
-                    statusEvents.forEach((event, index) => {
-                        const eventTime = new Date(event.timestamp.replace('GMT', '').trim());
-                        const eventActualStart = event.startTime ? new Date(event.startTime.replace('GMT', '').trim()) : eventTime;
-                        
-                        if (eventTime >= today && eventTime <= tomorrow) {
-                            if (startTime === null) {
-                                startTime = eventTime;
-                                actualStartTimeForPeriod = eventActualStart;
-                                currentStatus = event.status;
-                            } else {
-                                const duration = (eventTime - startTime) / 1000;
-                                const actualDuration = (eventTime - actualStartTimeForPeriod) / 1000;
-                                
-                                const period = {
-                                    status: currentStatus,
-                                    start: startTime,
-                                    actualStartTime: actualStartTimeForPeriod,
-                                    end: eventTime,
-                                    duration: duration,
-                                    actualDuration: actualDuration,
-                                };
-
-                                if (event.status === "Machine Off") {
-                                    const eventIndex = events.findIndex(e => 
-                                        e.timestamp === event.timestamp
-                                    );
-                                    reason = findStopReason(
-                                        events.slice(eventIndex, eventIndex + 3), 
-                                        eventTime
-                                    );
-                                }
-                                period.reason = reason;
-                                machineData.periods.push(period);
-                                startTime = eventTime;
-                                actualStartTimeForPeriod = eventActualStart;
-                                currentStatus = event.status;
-                            }
-                        }
-                    });
-
-                    if (lastEvent < currentTime) {
-                        const duration = (currentTime - lastEvent) / 1000;
-                        const actualDuration = (currentTime - actualStartTimeForPeriod) / 1000;
-                        
-                        machineData.periods.push({
-                            status: currentStatus,
-                            start: lastEvent,
-                            actualStartTime: actualStartTimeForPeriod,
-                            end: currentTime,
-                            duration: duration,
-                            actualDuration: actualDuration,
-                            reason: currentStatus === "Machine Off" ? reason : "Current Status"
-                        });
-                    }
-
-                    if (currentTime < tomorrow) {
-                        const duration = (tomorrow - currentTime) / 1000;
-                        machineData.periods.push({
-                            status: "Future",
-                            start: currentTime,
-                            actualStartTime: currentTime,
-                            end: tomorrow,
-                            duration: duration,
-                            actualDuration: duration,
-                            reason: "Future time period"
-                        });
-                    }
-                }
-            } else {
-                if (currentTime > today) {
-                    const duration = (currentTime - today) / 1000;
-                    machineData.periods.push({
-                        status: "Machine Off",
-                        start: today,
-                        actualStartTime: today,
-                        end: currentTime,
-                        duration: duration,
-                        actualDuration: duration,
-                        reason: "No operation data"
-                    });
-                }
-                
-                if (currentTime < tomorrow) {
-                    const duration = (tomorrow - currentTime) / 1000;
-                    machineData.periods.push({
-                        status: "Future",
-                        start: currentTime,
-                        actualStartTime: currentTime,
-                        end: tomorrow,
-                        duration: duration,
-                        actualDuration: duration,
-                        reason: "Future time period"
-                    });
-                }
-            }
-            machineData.periods = machineData.periods.filter((item, index) => machineData.periods.indexOf(item) === index);
-            processedData.push(machineData);
-        });
-
-        return processedData;
-    }
-
-    function createDurationGraph(data, machineColors) {
-    const margin = { top: 40, right: 80, bottom: 60, left: 60 };
-    const width = CONFIG.charts.width - margin.left - margin.right;
-    const height = CONFIG.charts.minHeight - margin.top - margin.bottom;
-
-    const svg = d3.select('#duration-graph')
-        .append('svg')
-        .attr('width', CONFIG.charts.width)
-        .attr('height', CONFIG.charts.minHeight)
-        .append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-
+function processFetchedData(data) {
+    const processedData = [];
+    const currentTime = new Date();
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const x = d3.scaleTime()
-        .domain([today, tomorrow])
-        .range([0, width]);
-
-    // Calculate max off-time across all machines
-    const maxOffTime = d3.max(data, machine => {
-        let totalOffTime = 0;
-        machine.periods.forEach(period => {
-            if (period.status === "Machine Off") {
-                totalOffTime += period.duration;
-            }
-        });
-        return totalOffTime;
-    }) || 86400; // Fallback to day's seconds if no data
-
-    // Round maxOffTime to a nice value for better ticks
-    const roundedMax = Math.ceil(maxOffTime / 3600) * 3600; // Round up to nearest hour
-
-    const y = d3.scaleLinear()
-        .domain([0, roundedMax])
-        .range([height, 0]);
-
-    svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(x).ticks(12).tickFormat(d3.timeFormat("%H:%M")));
-
-    // Create evenly spaced tick values
-    const tickCount = 8; // Number of ticks desired
-    const tickStep = roundedMax / tickCount;
-    const tickValues = Array.from({length: tickCount + 1}, (_, i) => i * tickStep);
-
-    // Format function for displaying time nicely
-    const formatTime = (seconds) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        
-        if (hours === 0) {
-            return minutes > 0 ? `${minutes}m` : "0";
-        } else if (minutes === 0) {
-            return `${hours}h`;
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    let shiftStart, shiftEnd;
+    if (currentShift === 'day') {
+        shiftStart = new Date(today);
+        shiftStart.setHours(8, 0, 0, 0);
+        shiftEnd = new Date(today);
+        shiftEnd.setHours(20, 0, 0, 0);
+    } else {
+        const now = new Date();
+        // For night shift, check if we're before or after midnight
+        if (now.getHours() < 8) {
+            // After midnight, before 8 AM
+            shiftStart = new Date(yesterday);
+            shiftStart.setHours(20, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setHours(8, 0, 0, 0);
         } else {
-            return `${hours}h ${minutes}m`;
+            // After 8 PM, before midnight
+            shiftStart = new Date(today);
+            shiftStart.setHours(20, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setDate(today.getDate() + 1);
+            shiftEnd.setHours(8, 0, 0, 0);
         }
-    };
+    }
 
-    svg.append('g')
-        .call(d3.axisLeft(y)
-            .tickValues(tickValues)
-            .tickFormat(d => formatTime(d)));
+    // Store all machine events regardless of shift for persistence
+    if (!window.allMachineEvents) {
+        window.allMachineEvents = {};
+    }
 
-    const line = d3.line()
-        .x(d => x(d.time))
-        .y(d => y(d.duration));
+    // Update or initialize the global events store
+    data.machines.forEach(machineName => {
+        const events = data.result[machineName] || [];
+        if (!window.allMachineEvents[machineName]) {
+            window.allMachineEvents[machineName] = events;
+        } else {
+            // Merge new events with existing ones, avoiding duplicates
+            const existingTimestamps = new Set(window.allMachineEvents[machineName].map(e => e.timestamp));
+            events.forEach(event => {
+                if (!existingTimestamps.has(event.timestamp)) {
+                    window.allMachineEvents[machineName].push(event);
+                }
+            });
+            
+            // Sort events by timestamp
+            window.allMachineEvents[machineName].sort((a, b) => 
+                new Date(a.timestamp.replace('GMT', '').trim()) - 
+                new Date(b.timestamp.replace('GMT', '').trim())
+            );
+        }
+    });
 
-    data.forEach(machine => {
-        let cumulativeOffTime = 0;
-        const lineData = [];
-        const offPoints = []; // Array to store specific off-time points
+    data.machines.forEach(machineName => {
+        const machineData = {
+            machine: machineName,
+            periods: []
+        };
         
-        machine.periods.forEach(period => {
-            if (period.status !== "Future") {
-                const startTime = period.start < today ? today : period.start;
+        // Use our persistent store instead of just current fetch
+        const events = window.allMachineEvents[machineName] || [];
+        const statusEvents = events.filter(event => 
+            event.status === "Machine On" || event.status === "Machine Off"
+        ).sort((a, b) => 
+            new Date(a.timestamp.replace('GMT', '').trim()) - 
+            new Date(b.timestamp.replace('GMT', '').trim())
+        );
+        
+        const lastStatus = getLastStatusBeforeShift(events, shiftStart);
+        
+        if (statusEvents.length > 0) {
+            const firstEvent = statusEvents.find(event => 
+                new Date(event.timestamp.replace('GMT', '').trim()) >= shiftStart
+            );
+            
+            if (!firstEvent || new Date(firstEvent.timestamp.replace('GMT', '').trim()) > shiftStart) {
+                const endTime = firstEvent ? 
+                    new Date(firstEvent.timestamp.replace('GMT', '').trim()) : 
+                    (currentTime < shiftEnd ? currentTime : shiftEnd);
+                
+                if (endTime > shiftStart) {
+                    machineData.periods.push({
+                        status: lastStatus.status,
+                        start: shiftStart,
+                        actualStartTime: lastStatus.startTime,
+                        end: endTime,
+                        duration: (endTime - shiftStart) / 1000,
+                        actualDuration: (endTime - lastStatus.startTime) / 1000,
+                        reason: lastStatus.reason
+                    });
+                }
+            }
+
+            let startTime = null;
+            let currentStatus = lastStatus.status;
+            let reason = lastStatus.reason;
+            let actualStartTimeForPeriod = lastStatus.startTime;
+            
+            statusEvents.forEach((event, index) => {
+                const eventTime = new Date(event.timestamp.replace('GMT', '').trim());
+                const eventActualStart = event.startTime ? 
+                    new Date(event.startTime.replace('GMT', '').trim()) : eventTime;
+                
+                if (eventTime >= shiftStart && eventTime <= shiftEnd) {
+                    if (startTime === null) {
+                        startTime = eventTime;
+                        actualStartTimeForPeriod = eventActualStart;
+                        currentStatus = event.status;
+                    } else {
+                        const duration = (eventTime - startTime) / 1000;
+                        const actualDuration = (eventTime - actualStartTimeForPeriod) / 1000;
+                        
+                        const period = {
+                            status: currentStatus,
+                            start: startTime,
+                            actualStartTime: actualStartTimeForPeriod,
+                            end: eventTime,
+                            duration: duration,
+                            actualDuration: actualDuration,
+                        };
+
+                        if (currentStatus === "Machine Off") {
+                            // Look for button press event for reason
+                            reason = findStopReason(events, startTime);
+                        }
+                        period.reason = reason;
+                        machineData.periods.push(period);
+                        startTime = eventTime;
+                        actualStartTimeForPeriod = eventActualStart;
+                        currentStatus = event.status;
+                    }
+                }
+            });
+
+            const lastEvent = statusEvents[statusEvents.length - 1];
+            if (lastEvent && new Date(lastEvent.timestamp.replace('GMT', '').trim()) < shiftEnd) {
+                const lastEventTime = new Date(lastEvent.timestamp.replace('GMT', '').trim());
+                const endTime = currentTime < shiftEnd ? currentTime : shiftEnd;
+                
+                if (lastEventTime < endTime) {
+                    const duration = (endTime - lastEventTime) / 1000;
+                    const actualDuration = (endTime - actualStartTimeForPeriod) / 1000;
+                    
+                    machineData.periods.push({
+                        status: lastEvent.status,
+                        start: lastEventTime,
+                        actualStartTime: actualStartTimeForPeriod,
+                        end: endTime,
+                        duration: duration,
+                        actualDuration: actualDuration,
+                        reason: lastEvent.status === "Machine Off" ? 
+                            findStopReason(events, lastEventTime) : "Current Status"
+                    });
+                }
+            }
+        } else {
+            const endTime = currentTime < shiftEnd ? currentTime : shiftEnd;
+            const duration = (endTime - shiftStart) / 1000;
+            machineData.periods.push({
+                status: lastStatus.status,
+                start: shiftStart,
+                actualStartTime: lastStatus.startTime,
+                end: endTime,
+                duration: duration,
+                actualDuration: (endTime - lastStatus.startTime) / 1000,
+                reason: lastStatus.reason
+            });
+        }
+        
+        machineData.periods = machineData.periods.filter((item, index) => 
+            machineData.periods.indexOf(item) === index);
+        processedData.push(machineData);
+    });
+
+    return processedData;
+}
+
+    function createDurationGraph(data, machineColors) {
+        const margin = { top: 40, right: 80, bottom: 60, left: 60 };
+        const width = CONFIG.charts.width - margin.left - margin.right;
+        const height = CONFIG.charts.minHeight - margin.top - margin.bottom;
+
+        const svg = d3.select('#duration-graph')
+            .append('svg')
+            .attr('width', CONFIG.charts.width)
+            .attr('height', CONFIG.charts.minHeight)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        
+        let shiftStart, shiftEnd;
+        if (currentShift === 'day') {
+            shiftStart = new Date(today);
+            shiftStart.setHours(8, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setHours(20, 0, 0, 0);
+        } else {
+            shiftStart = new Date(yesterday);
+            shiftStart.setHours(20, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setHours(8, 0, 0, 0);
+        }
+
+        const x = d3.scaleTime()
+            .domain([shiftStart, shiftEnd])
+            .range([0, width]);
+
+        const maxOffTime = d3.max(data, machine => {
+            let totalOffTime = 0;
+            machine.periods.forEach(period => {
+                if (period.status === "Machine Off") {
+                    totalOffTime += period.duration;
+                }
+            });
+            return totalOffTime;
+        }) || 43200;
+
+        const roundedMax = Math.ceil(maxOffTime / 3600) * 3600;
+        const y = d3.scaleLinear()
+            .domain([0, roundedMax])
+            .range([height, 0]);
+
+        svg.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%H:%M")));
+
+        const tickCount = 8;
+        const tickStep = roundedMax / tickCount;
+        const tickValues = Array.from({length: tickCount + 1}, (_, i) => i * tickStep);
+
+        const formatTime = (seconds) => {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return hours === 0 ? (minutes > 0 ? `${minutes}m` : "0") : 
+                (minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`);
+        };
+
+        svg.append('g')
+            .call(d3.axisLeft(y)
+                .tickValues(tickValues)
+                .tickFormat(d => formatTime(d)));
+
+        const line = d3.line()
+            .x(d => x(d.time))
+            .y(d => y(d.duration));
+
+        data.forEach(machine => {
+            let cumulativeOffTime = 0;
+            const lineData = [];
+            
+            machine.periods.forEach(period => {
+                const startTime = period.start < shiftStart ? shiftStart : period.start;
                 const endTime = period.end;
                 
                 lineData.push({
@@ -647,73 +817,47 @@
 
                 if (period.status === "Machine Off") {
                     cumulativeOffTime += period.duration;
-                    
-                    // Store the midpoint of the off period for point visualization
-                    const midTime = new Date((startTime.getTime() + endTime.getTime()) / 2);
-                    offPoints.push({
-                        time: midTime,
-                        duration: cumulativeOffTime - (period.duration / 2) // Position in the middle of the line segment
-                    });
                 }
 
                 lineData.push({
                     time: endTime,
                     duration: cumulativeOffTime
                 });
-            }
+            });
+
+            svg.append('path')
+                .datum(lineData)
+                .attr('fill', 'none')
+                .attr('stroke', machineColors(machine.machine))
+                .attr('stroke-width', 2)
+                .attr('d', line)
+                .on('mouseover', function(event) {
+                    createTooltip(machine.machine, event);
+                })
+                .on('mouseout', () => d3.selectAll('.tooltip').remove());
         });
 
-        svg.append('path')
-            .datum(lineData)
-            .attr('fill', 'none')
-            .attr('stroke', machineColors(machine.machine))
-            .attr('stroke-width', 2)
-            .attr('d', line)
-            .on('mouseover', function(event) {
-                createTooltip(machine.machine, event);
-            })
-            .on('mouseout', () => d3.selectAll('.tooltip').remove());
-        
-        // Only add points for off-time periods if there's a single machine
-        // if (data.length === 1) {
-        //     svg.selectAll(".off-point")
-        //         .data(offPoints)
-        //         .enter()
-        //         .append("circle")
-        //         .attr("class", "off-point")
-        //         .attr("cx", d => x(d.time))
-        //         .attr("cy", d => y(d.duration))
-        //         .attr("r", 3)
-        //         .attr("fill", machineColors(machine.machine))
-        //         .attr("stroke", "#fff")
-        //         .attr("stroke-width", 1)
-        //         .on('mouseover', function(event) {
-        //             createTooltip(machine.machine, event);
-        //         })
-        //         .on('mouseout', () => d3.selectAll('.tooltip').remove());
-        // }
-    });
+        const legend = svg.append('g')
+            .attr('class', 'legend')
+            .attr('transform', `translate(${width + 20}, 0)`);
 
-    const legend = svg.append('g')
-        .attr('class', 'legend')
-        .attr('transform', `translate(${width + 20}, 0)`);
+        data.forEach((d, i) => {
+            const legendGroup = legend.append('g')
+                .attr('transform', `translate(0, ${i * 20})`);
 
-    data.forEach((d, i) => {
-        const legendGroup = legend.append('g')
-            .attr('transform', `translate(0, ${i * 20})`);
+            legendGroup.append('rect')
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('fill', machineColors(d.machine));
 
-        legendGroup.append('rect')
-            .attr('width', 10)
-            .attr('height', 10)
-            .attr('fill', machineColors(d.machine));
+            legendGroup.append('text')
+                .attr('x', 12)
+                .attr('y', 8)
+                .text(d.machine)
+                .style('font-size', '9px');
+        });
+    }
 
-        legendGroup.append('text')
-            .attr('x', 12)
-            .attr('y', 8)
-            .text(d.machine)
-            .style('font-size', '9px');
-    });
-}
     function updateChart(data, reasonData, machineData) {
         let filteredReasonData = reasonData;
         let filteredMachineData = machineData;
@@ -795,12 +939,24 @@
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        
+        let shiftStart, shiftEnd;
+        if (currentShift === 'day') {
+            shiftStart = new Date(today);
+            shiftStart.setHours(8, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setHours(20, 0, 0, 0);
+        } else {
+            shiftStart = new Date(yesterday);
+            shiftStart.setHours(20, 0, 0, 0);
+            shiftEnd = new Date(today);
+            shiftEnd.setHours(8, 0, 0, 0);
+        }
 
         const x = d3.scaleTime()
-            .domain([today, tomorrow])
+            .domain([shiftStart, shiftEnd])
             .range([0, width]);
 
         const machineGroups = svg.selectAll(".machine-group")
@@ -816,18 +972,17 @@
                 .data(machine.periods)
                 .join("rect")
                 .attr("x", d => {
-                    const barStart = d.start < today ? today : d.start;
+                    const barStart = d.start < shiftStart ? shiftStart : d.start;
                     return x(barStart);
                 })
                 .attr("width", d => {
-                    const barStart = d.start < today ? today : d.start;
+                    const barStart = d.start < shiftStart ? shiftStart : d.start;
                     const barEnd = d.end;
                     return Math.max(0, x(barEnd) - x(barStart));
                 })
                 .attr("height", CONFIG.charts.barHeight)
                 .attr("fill", d => {
                     if (d.status === "Machine On") return reasonColors("Machine On");
-                    if (d.status === "Future") return reasonColors("Future");
                     return reasonColors(d.reason || "N/A");
                 })
                 .attr("class", "bar")
@@ -849,7 +1004,7 @@
         });
 
         const xAxis = d3.axisBottom(x)
-            .ticks(24)
+            .ticks(12)
             .tickFormat(d3.timeFormat("%H:%M"));
 
         const yAxis = d3.axisLeft(y);
@@ -865,7 +1020,7 @@
             .selectAll(".tick line")
             .style("stroke", machineName => {
                 const machineData = filteredData.find(d => d.machine === machineName);
-                const lastPeriod = machineData?.periods[machineData.periods.length - 2];
+                const lastPeriod = machineData?.periods[machineData.periods.length - 1];
                 let color = 'black';
                 if (lastPeriod?.status === "Machine On") {
                     color = '#22aa11';
@@ -901,7 +1056,6 @@
 
         const legendItems = [
             { label: "Machine On", color: reasonColors("Machine On") },
-            { label: "Future", color: reasonColors("Future") },
             ...reasonData.map(d => ({ label: d.reason, color: reasonColors(d.reason) }))
         ];
 
@@ -938,11 +1092,8 @@
                 <label for="reason-${d.reason}">${d.reason}</label>
             `;
             checkbox.querySelector('input').addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    selectedReasons.add(d.reason);
-                } else {
-                    selectedReasons.delete(d.reason);
-                }
+                if (e.target.checked) selectedReasons.add(d.reason);
+                else selectedReasons.delete(d.reason);
                 saveSelections();
                 updateChart(data, reasonData, machineData);
             });
@@ -958,11 +1109,8 @@
                 <label for="machine-${d.machine}">${d.machine}</label>
             `;
             checkbox.querySelector('input').addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    selectedMachines.add(d.machine);
-                } else {
-                    selectedMachines.delete(d.machine);
-                }
+                if (e.target.checked) selectedMachines.add(d.machine);
+                else selectedMachines.delete(d.machine);
                 saveSelections();
                 updateChart(data, reasonData, machineData);
             });
@@ -970,15 +1118,17 @@
         });
     }
 
+    function fetchAndUpdateCharts() {
     fetch(`${CONFIG.api}/api/mc-graph`)
         .then(response => response.json())
         .then(data => {
             let mc_no = localStorage.getItem("user");
             mc_no = JSON.parse(mc_no);
             data.machines = mc_no.machine === "All" ? data.machines : [mc_no.machine];
-            const processedData = processFetchedData(data);
+            chartData = processFetchedData(data);
             
-            let reasonwise_npt = [
+            // Clear previous reason and machine data
+            reasonData = [
                 { reason: "Maintenance", value: 0, count: 0 },
                 { reason: "Needle Breakage", value: 0, count: 0 },
                 { reason: "No Order / No Program", value: 0, count: 0 },
@@ -991,31 +1141,41 @@
                 { reason: "No operation data", value: 0, count: 0 }
             ];
 
-            let machinewise_npt = [];
+            machineData = [];
             
-            processedData.forEach(data => {
-                machinewise_npt.push({"machine": data.machine, value: 0});
-                let length = machinewise_npt.length - 1;
+            // Recalculate statistics from the processed data
+            chartData.forEach(data => {
+                machineData.push({"machine": data.machine, value: 0});
+                let length = machineData.length - 1;
                 data.periods.forEach(element => {
                     if(element.status === "Machine Off"){
-                        machinewise_npt[length].value += element.duration;
-                        for(let i = 0; i < reasonwise_npt.length; i++){
-                            reasonwise_npt[i].value += reasonwise_npt[i].reason === element.reason ? element.duration : 0;
-                            reasonwise_npt[i].count += reasonwise_npt[i].reason === element.reason ? 1 : 0;
+                        machineData[length].value += element.duration;
+                        for(let i = 0; i < reasonData.length; i++){
+                            if(reasonData[i].reason === element.reason) {
+                                reasonData[i].value += element.duration;
+                                reasonData[i].count += 1;
+                            }
                         }
                     }
                 });
             });
-            
-            initializeSettings();
-            updateCheckboxes(processedData, reasonwise_npt, machinewise_npt);
-            updateChart(processedData, reasonwise_npt, machinewise_npt);
+
+            // Store the current data for persistence between page reloads
+            localStorage.setItem('chartDataCache', JSON.stringify({
+                reasonData: reasonData,
+                machineData: machineData,
+                timestamp: new Date().toISOString()
+            }));
+
+            console.log('Data fetched and processed:', {chartData, reasonData, machineData});
+            updateCheckboxes(chartData, reasonData, machineData);
+            updateChart(chartData, reasonData, machineData);
         })
         .catch(error => console.error('Error fetching data:', error));
+}
 
-    setInterval(() => {
-        location.reload();
-    }, CONFIG.refreshInterval);
+    fetchAndUpdateCharts();
+    setInterval(() => fetchAndUpdateCharts(), CONFIG.refreshInterval);
     </script>
 </body>
 </html>

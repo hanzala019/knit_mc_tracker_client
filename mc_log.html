@@ -18,7 +18,7 @@
                 margin-bottom: 20px;
                 border-radius: 4px;
                 border: 1px solid #ddd;
-                display: none; /* Hidden by default */
+                display: block; /* Hidden by default */
             }
             .filter-row {
                 display: flex;
@@ -49,8 +49,8 @@
         <div class="nav-links" >
             <a href="./mc_log.html" class="nav-link">Machine Logs</a>
             <a href="./chart.html" class="nav-link">Machine Chart</a>
-            <!-- <a href="./report.html" class="nav-link">Report</a> -->
-            <!-- <a href="./simulate.html" class="nav-link">Simulation</a> -->
+            <a href="./report.html" class="nav-link">Report</a>
+            <a href="./simulate.html" class="nav-link">Simulation</a>
         </div>
             <div class="user-section">
                  <button class="logout-button">Logout</button>
@@ -60,7 +60,7 @@
 
      <div class="container">
         <button class="btn btn-primary toggle-filters" onclick="toggleFilters()">
-            <span id="toggleText">Show Filters</span>
+            <span id="toggleText">Hide Filters</span>
         </button>
     </div>
 
@@ -201,7 +201,7 @@
             {name:"Roll Cutting", count: 0},
             {name:"Yarn Breakage", count: 0},
         ];
-        const api =  "https://knit-mc-tracker-server.onrender.com";
+        const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com";
         let originalMcLogs = [];
         let filtersInitialized = false;
         let allMc = [];
