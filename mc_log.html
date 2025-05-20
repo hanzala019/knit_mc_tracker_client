@@ -201,7 +201,7 @@
             {name:"Roll Cutting", count: 0},
             {name:"Yarn Breakage", count: 0},
         ];
-        const api = "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com";
+        const api =  "https://knit-mc-tracker-server.onrender.com";
         let originalMcLogs = [];
         let filtersInitialized = false;
         let allMc = [];
@@ -605,7 +605,7 @@
             data.forEach((entry) => {
                 if (!entry || typeof entry !== 'object' || !entry.Machine) return;
                 const Machine = entry.Machine || "Unknown";
-                const Reason = entry.Reason || "Unknown/Button not pressed";
+                const Reason = entry.Reason || "N/A";
                 const Totaltime = Number(entry.Totaltime) || 0;
 
                 if (!mcReasons[Machine]) {
