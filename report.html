@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="./helper functions/tables.js"></script>
     <link href="styles/style.css" rel="stylesheet">
     <link href="styles/chart.css" rel="stylesheet">
     <style>
@@ -500,7 +501,7 @@
 
         let data = { machines: [], result: [] };
         let machineViews = {};
-        const api = "https://organic-relative-wren.ngrok-free.app" || "https://knit-mc-tracker-server.onrender.com";
+        const api = "http://192.168.10.123:5000" || "server.ocmsbd.com:2034" || "https://knit-mc-tracker-server.onrender.com"
         let filtersVisible = true;
         const machineColors = {};
         const defaultColors = ['#4e79a7', '#f28e2c', '#e15759', '#76b7b2', '#59a14f', '#edc949', '#af7aa1', '#ff9da7', '#9c755f', '#bab0ab'];
