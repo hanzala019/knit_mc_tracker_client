@@ -201,7 +201,7 @@
             {name:"Roll Cutting", count: 0},
             {name:"Yarn Breakage", count: 0},
         ];
-        const api =  "https://knit-mc-tracker-server.onrender.com";
+        const api = "https://organic-relative-wren.ngrok-free.app" // || "http://127.0.0.1:5000" || "https://knit-mc-tracker-server.onrender.com";
         let originalMcLogs = [];
         let filtersInitialized = false;
         let allMc = [];
@@ -222,6 +222,7 @@
     try {
         const response = await fetch(`${api}/api/mc-log`);
         const data = await response.json();
+        // console.log(data)
         const arr = data.result?.complete || [];
         const arr2 = data.result?.incomplete || [];
         let mc_no = localStorage.getItem("user");
@@ -323,11 +324,11 @@
         }
 
         async function applyFilters() {
-    const machineFilter = document.getElementById('machineFilter').value;
-    const reasonFilter = document.getElementById('reasonFilter').value;
-    const shiftFilter = document.getElementById('shiftFilter').value;
-    let dateFrom = document.getElementById('dateFrom').value;
-    let dateTo = document.getElementById('dateTo').value;
+        const machineFilter = document.getElementById('machineFilter').value;
+        const reasonFilter = document.getElementById('reasonFilter').value;
+        const shiftFilter = document.getElementById('shiftFilter').value;
+        let dateFrom = document.getElementById('dateFrom').value;
+        let dateTo = document.getElementById('dateTo').value;
     
     try {
         // Handle date adjustments with GMT+6
